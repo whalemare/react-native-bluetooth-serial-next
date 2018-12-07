@@ -48,7 +48,6 @@ export const withSubscription = (
 
         if (typeof subscription.removeAllListeners === "function") {
           subscription.removeAllListeners();
-          console.log(subscription);
         }
       }
     }
