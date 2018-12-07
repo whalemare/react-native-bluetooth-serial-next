@@ -301,6 +301,10 @@ declare namespace BluetoothSerial {
    *
    * @param services
    * @param includeDefaultServices
+   *
+   * @throws this will throws an error if each service object in the array
+   *         is invalid; each of them needs to have
+   *         `service`, `read`, and `write` key-value.
    */
   export function setServices(
     services: Array<Service>,

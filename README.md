@@ -4,7 +4,7 @@
 
 React Native version of [BluetoothSerial](https://github.com/don/BluetoothSerial) plugin for both Android and iOS. Pulled from [React Native Bluetooth Serial](https://github.com/rusel1989/react-native-bluetooth-serial).
 
-For iOS, this module currently supports preconfigured services which are Read Bear Lab, Adafruit BLE, Bluegiga, Laird Virtual Serial Port, and Rongta.
+For iOS, this module now support [service declaration](#service-declaration-for-ios), by default, those services are Read Bear Lab, Adafruit BLE, Bluegiga, Laird Virtual Serial Port, and Rongta.
 
 ## Table of Contents
 
@@ -12,6 +12,7 @@ For iOS, this module currently supports preconfigured services which are Read Be
 - [Example](#example)
 - [API References](#api-references)
   - [Device object](#device-object)
+  - [Service object](#service-object)
   - [High order component](#high-order-component)
   - [Methods](#methods)
 - [Multiple devices connection](#multiple-devices-connection)
@@ -100,6 +101,19 @@ This is basically the result object from API methods depending on operation syst
 }
 ```
 
+### Service object
+
+**iOS**
+
+```js
+{
+    name: 'This field might not be present in the object',
+    service: 'BLE service UUID string',
+    read: 'BLE read characteristic UUID string',
+    write: 'BLE write characteristic UUID string',
+}
+```
+
 ### High order component
 
 #### withSubscription( options : <span style="color:#999;">Object</span> ) : <span style="color:#999;">React.Component</span>
@@ -130,6 +144,7 @@ export default withSubscription({
 - [Device connection](#device-connection)
 - [Device IO](#device-io)
 - [Device buffer](#device-buffer)
+- [Service declaration for iOS](#service-declaration-for-ios)
 
 #### Bluetooth adapter
 
@@ -423,6 +438,51 @@ Set delimiter that will split the buffer data when you are reading from device.
 const deviceId = await BluetoothSerial.withDelimiter("\r\n");
 ```
 
+---
+
+#### Service declaration for iOS
+
+You can get the default services which are Read Bear Lab, Adafruit BLE, Bluegiga, Laird Virtual Serial Port, and Rongta via `BluetoothSerial.DEFAULT_SERVICES` array.
+
+##### setServices( services : <span style="color:#999;">[Service](#service-object)[]</span>, includeDefaultServices? : <span style="color:#999;">Boolean</span> ) : <span style="color:#999;">Promise\<[Service](#service-object)[]></span>
+
+Set custom bluetooth services for filtering out the specific protocols that you need.
+
+- For Android, this method has no effect and will return empty array.
+- services : <span style="color:#999;">[Service](#service-object)[]</span>
+  Array of custom service object; each of them must have `service`, `read`, and `write` key-value.
+- includeDefaultServices? : <span style="color:#999;">Boolean</span> = `true`
+  Should we include `BluetoothSerial.DEFAULT_SERVICES` in the services array?
+
+```js
+const updatedServices = await BluetoothSerial.setServices([
+    name: 'Custom Bluetooth Service',
+    service: '111-111-111-111-111-111',
+    read: '111-111-111-111-111-111',
+    write: '111-111-111-111-111-111',
+], false);
+```
+
+##### getServices() : <span style="color:#999;">Promise\<[Service](#service-object)[]></span>
+
+Get current services.
+
+- For Android, this method has no effect and will return empty array.
+
+```js
+const currentServices = await BluetoothSerial.getServices();
+```
+
+##### restoreServices() : <span style="color:#999;">Promise\<[Service](#service-object)[]></span>
+
+Restore services and set them to default services (`BluetoothSerial.DEFAULT_SERVICES`.)
+
+- For Android, this method has no effect and will return empty array.
+
+```js
+const services = await BluetoothSerial.restoreServices();
+```
+
 ### Multiple devices connection
 
 This module supports multiple devices connection, as you can see in [API Methods](#methods), most of the connection, IO, and buffer methods have `id` parameter that you can pass and specify which bluetooth device that you want to control.
@@ -557,5 +617,4 @@ await yourDevice.disconnect();
 
 ## Todos
 
-- iOS Service declaration. We should be able to define array of service UUID, read characteristic UUID, write characteristic UUID ourselves.
 - Write base64 image.
