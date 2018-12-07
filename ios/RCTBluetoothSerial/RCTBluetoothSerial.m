@@ -55,6 +55,10 @@ RCT_EXPORT_MODULE();
 #pragma mark - React Native Methods Available in Javascript -
 /*----------------------------------------------------*/
 
+- (NSDictionary *)constantsToExport
+{
+    return @{@"DEFAULT_SERVICES":[self.ble getDefaultServices]};
+}
 
 RCT_EXPORT_METHOD(requestEnable:(RCTPromiseResolveBlock)resolve
                   rejector:(RCTPromiseRejectBlock)reject)
@@ -316,6 +320,49 @@ RCT_EXPORT_METHOD(setAdapterName:(NSString *)name
     NSError *error = [NSError errorWithDomain:@"no_support" code:500 userInfo:@{NSLocalizedDescriptionKey:message}];
     [self onError:message];
     reject(@"", message, error);
+}
+
+RCT_EXPORT_METHOD(setServices:(NSArray *)services
+                  includeDefaultServices:(BOOL)includeDefault
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejector:(RCTPromiseRejectBlock)reject)
+{
+    if ([self.ble validateServices:services]) {
+        NSMutableArray *mutableServices = [NSMutableArray arrayWithArray:services];
+        
+        if (includeDefault) {
+            mutableServices = [self.ble includeDefaultServices:mutableServices] copy];
+        }
+        
+        [self.ble setServices:[self.ble servicesArrayToDictionary:mutableServices]];
+        NSArray *services = [self.ble servicesDictionaryToArray:[self.ble services]];
+        resolve(services);
+    } else {
+        NSString *message = @"Invalid array of service objects";
+        NSError *error = [NSError errorWithDomain:@"invalid_parameter" code:500 userInfo:@{NSLocalizedDescriptionKey:message}];
+        [self onError:message];
+        reject(@"", message, error);
+    }
+}
+
+RCT_EXPORT_METHOD(setServices:(NSArray *)services
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejector:(RCTPromiseRejectBlock)reject)
+{
+    [self setServices:services includeDefaultServices:TRUE resolver:resolve rejector:reject];
+}
+
+RCT_EXPORT_METHOD(getServices:(RCTPromiseResolveBlock)resolve rejector:(RCTPromiseRejectBlock)reject)
+{
+    NSArray *services = [self.ble servicesDictionaryToArray:[self.ble services]];
+    resolve(services);
+}
+
+RCT_EXPORT_METHOD(restoreServices:(RCTPromiseResolveBlock)resolve rejector:(RCTPromiseRejectBlock)reject)
+{
+    [self.ble setServices:[self.ble servicesArrayToDictionary:[self.ble getDefaultServices]]];
+    NSArray *services = [self.ble servicesDictionaryToArray:[self.ble services]];
+    resolve(services);
 }
 
 RCT_EXPORT_METHOD(writeToDevice:(NSString *)message

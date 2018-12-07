@@ -137,6 +137,11 @@ typedef void (^CentralManagerDiscoverPeripheralsCallback) (NSMutableArray *perip
 @property (assign, nonatomic, readonly, getter = isCentralReady) BOOL centralReady;
 
 /*!
+ * Available BLE services, read and write characteristics.
+ */
+@property (assign, nonatomic) NSDictionary *services;
+
+/*!
  * Completion block for peripheral scanning.
  */
 @property (copy, nonatomic) CentralManagerDiscoverPeripheralsCallback scanBlock;
@@ -268,5 +273,40 @@ typedef void (^CentralManagerDiscoverPeripheralsCallback) (NSMutableArray *perip
  *
  */
 - (CBPeripheral *)getActivePeripheral:(NSString *)uuid;
+
+/*!
+ *  @method validateServices
+ *
+ *  @discussion Validate service object to contain certain keys.
+ */
+- (BOOL)validateServices:(NSArray *)services;
+
+/*!
+ *  @method servicesArrayToDictionary
+ *
+ *  @discussion Convert services array to dictionary; key is service.
+ */
+- (NSDictionary *)servicesArrayToDictionary:(NSArray *)services;
+
+/*!
+ *  @method servicesDictionaryToArray
+ *
+ *  @discussion Convert services dictionary to array.
+ */
+- (NSArray *)servicesDictionaryToArray:(NSDictionary *)services;
+
+/*!
+ *  @method getDefaultServices
+ *
+ *  @discussion Get default BLE service array from BLEDefines.h.
+ */
+- (NSArray *)getDefaultServices;
+
+/*!
+ *  @method includeDefaultServices.
+ *
+ *  @discussion Include default BLE service array from BLEDefines.h into services array.
+ */
+- (NSArray *)includeDefaultServices:(NSArray *)services;
 
 @end

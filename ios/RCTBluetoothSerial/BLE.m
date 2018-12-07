@@ -19,24 +19,15 @@
 
 static const int MAX_BUFFER_LENGTH = 100;
 
-// TODO should have a configurable list of services
-
 /**
- * Available services
+ * Default services.
  */
-CBUUID *redBearLabsServiceUUID;
-CBUUID *adafruitServiceUUID;
-CBUUID *lairdServiceUUID;
-CBUUID *blueGigaServiceUUID;
-CBUUID *rongtaSerivceUUID;
-CBUUID *posnetSerivceUUID;
-
-/**
- * Available read/write characteristic
- */
-CBUUID *serialServiceUUID;
-CBUUID *readCharacteristicUUID;
-CBUUID *writeCharacteristicUUID;
+NSDictionary *redBearLabsService;
+NSDictionary *adafruitService;
+NSDictionary *lairdService;
+NSDictionary *blueGigaService;
+NSDictionary *rongtaService;
+NSDictionary *posnetService;
 
 /*----------------------------------------------------*/
 #pragma mark - Lifecycle -
@@ -49,6 +40,39 @@ CBUUID *writeCharacteristicUUID;
         _activePeripherals = [NSMutableDictionary dictionary];
         _scannedPeripherals = [NSMutableArray new];
         _peripheralsCountToStop = NSUIntegerMax;
+        
+        redBearLabsService = @{@"name": @"Red Bear Labs Service",
+                               @"service": [CBUUID UUIDWithString:@RBL_SERVICE_UUID],
+                               @"read":[CBUUID UUIDWithString:@RBL_CHAR_TX_UUID],
+                               @"write": [CBUUID UUIDWithString:@RBL_CHAR_RX_UUID]};
+        
+        adafruitService = @{@"name": @"Adafruit Service",
+                            @"service": [CBUUID UUIDWithString:@ADAFRUIT_SERVICE_UUID],
+                            @"read":[CBUUID UUIDWithString:@ADAFRUIT_CHAR_TX_UUID],
+                            @"write": [CBUUID UUIDWithString:@ADAFRUIT_CHAR_RX_UUID]};
+        
+        lairdService = @{@"name": @"Laird Service",
+                         @"service": [CBUUID UUIDWithString:@LAIRD_SERVICE_UUID],
+                         @"read":[CBUUID UUIDWithString:@LAIRD_CHAR_TX_UUID],
+                         @"write": [CBUUID UUIDWithString:@LAIRD_CHAR_RX_UUID]};
+        
+        blueGigaService = @{@"name": @"Blue Giga Service",
+                            @"service": [CBUUID UUIDWithString:@ADAFRUIT_SERVICE_UUID],
+                            @"read":[CBUUID UUIDWithString:@ADAFRUIT_CHAR_TX_UUID],
+                            @"write": [CBUUID UUIDWithString:@ADAFRUIT_CHAR_RX_UUID]};
+        
+        rongtaService = @{@"name": @"Rongta Service",
+                          @"service": [CBUUID UUIDWithString:@RONGTA_SERVICE_UUID],
+                          @"read":[CBUUID UUIDWithString:@RONGTA_CHAR_TX_UUID],
+                          @"write": [CBUUID UUIDWithString:@RONGTA_CHAR_RX_UUID]};
+        
+        posnetService = @{@"name": @"POSNET Service",
+                          @"service": [CBUUID UUIDWithString:@POSNET_SERVICE_UUID],
+                          @"read":[CBUUID UUIDWithString:@POSNET_CHAR_TX_UUID],
+                          @"write": [CBUUID UUIDWithString:@POSNET_CHAR_RX_UUID]};
+        
+        _services = [self servicesArrayToDictionary:[self getDefaultServices]];
+
         _manager = [[CBCentralManager alloc] initWithDelegate:self queue:nil options:[NSDictionary dictionaryWithObject:[NSNumber numberWithBool:YES] forKey:CBCentralManagerOptionShowPowerAlertKey]];
     }
     return self;
@@ -132,11 +156,24 @@ CBUUID *writeCharacteristicUUID;
 
 - (void)enableReadNotification:(CBPeripheral *)peripheral
 {
-    CBService *service = [self findServiceFromUUID:serialServiceUUID peripheral:peripheral];
+    NSMutableDictionary *activePeripheral = [self.activePeripherals objectForKey:peripheral.identifier.UUIDString];
+    
+    if (!activePeripheral) {
+        NSString *message = [NSString stringWithFormat:@"Could not find active peripheral with UUID %@", peripheral.identifier.UUIDString];
+        NSLog(@"%@", message);
+        
+        NSError *error = [NSError errorWithDomain:@"no_peripheral" code:500 userInfo:@{NSLocalizedDescriptionKey:message}];
+        [[self delegate] didError:error];
+        
+        return;
+    }
+    
+    CBUUID *serviceUUID = [activePeripheral objectForKey:@"service"];
+    CBService *service = [self findServiceFromUUID:serviceUUID peripheral:peripheral];
     
     if (!service) {
         NSString *message = [NSString stringWithFormat:@"Could not find service with UUID %@ on peripheral with UUID %@",
-                             [self CBUUIDToString:serialServiceUUID],
+                             [self CBUUIDToString:serviceUUID],
                              peripheral.identifier.UUIDString];
         NSLog(@"%@", message);
         
@@ -146,13 +183,14 @@ CBUUID *writeCharacteristicUUID;
         return;
     }
     
-    CBCharacteristic *characteristic = [self findCharacteristicFromUUID:readCharacteristicUUID service:service];
+    CBUUID *readUUID = [activePeripheral objectForKey:@"read"];
+    CBCharacteristic *characteristic = [self findCharacteristicFromUUID:readUUID service:service];
     
     if (!characteristic) {
         NSString *message = [NSString stringWithFormat:
                              @"Could not find characteristic with UUID %@ on service with UUID %@ on peripheral with UUID %@",
-                             [self CBUUIDToString:readCharacteristicUUID],
-                             [self CBUUIDToString:serialServiceUUID],
+                             [self CBUUIDToString:readUUID],
+                             [self CBUUIDToString:serviceUUID],
                              peripheral.identifier.UUIDString];
         NSLog(@"%@", message);
         
@@ -178,8 +216,20 @@ CBUUID *writeCharacteristicUUID;
 
 - (void)read:(NSString *)uuid
 {
-    CBPeripheral *peripheral = [self getActivePeripheral:uuid];
+    NSMutableDictionary *activePeripheral = [self getFirstPeripheralDictionary:uuid];
     
+    if (!activePeripheral) {
+        NSString *message = [NSString stringWithFormat:@"Could not find active peripheral with UUID %@", uuid];
+        NSLog(@"%@", message);
+        
+        NSError *error = [NSError errorWithDomain:@"no_peripheral" code:500 userInfo:@{NSLocalizedDescriptionKey:message}];
+        [[self delegate] didError:error];
+        
+        return;
+    }
+    
+    CBPeripheral *peripheral = [activePeripheral objectForKey:@"peripheral"];
+
     if (!peripheral) {
         NSString *message = [NSString stringWithFormat:@"Could not find active peripheral with UUID %@", uuid];
         NSLog(@"%@", message);
@@ -190,12 +240,13 @@ CBUUID *writeCharacteristicUUID;
         return;
     }
     
-    CBService *service = [self findServiceFromUUID:serialServiceUUID peripheral:peripheral];
-    
+    CBUUID *serviceUUID = [activePeripheral objectForKey:@"service"];
+    CBService *service = [self findServiceFromUUID:serviceUUID peripheral:peripheral];
+
     if (!service) {
         NSString *message = [NSString stringWithFormat:
                              @"Could not find service with UUID %@ on peripheral with UUID %@",
-                             [self CBUUIDToString:serialServiceUUID],
+                             [self CBUUIDToString:serviceUUID],
                              peripheral.identifier.UUIDString];
         NSLog(@"%@", message);
         
@@ -205,13 +256,14 @@ CBUUID *writeCharacteristicUUID;
         return;
     }
     
-    CBCharacteristic *characteristic = [self findCharacteristicFromUUID:readCharacteristicUUID service:service];
+    CBUUID *readUUID = [activePeripheral objectForKey:@"read"];
+    CBCharacteristic *characteristic = [self findCharacteristicFromUUID:readUUID service:service];
     
     if (!characteristic) {
         NSString *message = [NSString stringWithFormat:
                              @"Could not find characteristic with UUID %@ on service with UUID %@ on peripheral with UUID %@",
-                             [self CBUUIDToString:readCharacteristicUUID],
-                             [self CBUUIDToString:serialServiceUUID],
+                             [self CBUUIDToString:readUUID],
+                             [self CBUUIDToString:serviceUUID],
                              peripheral.identifier.UUIDString];
         NSLog(@"%@", message);
         
@@ -226,7 +278,19 @@ CBUUID *writeCharacteristicUUID;
 
 - (void)write:(NSString *)uuid data:(NSData *)data
 {
-    CBPeripheral *peripheral = [self getActivePeripheral:uuid];
+    NSMutableDictionary *activePeripheral = [self getFirstPeripheralDictionary:uuid];
+    
+    if (!activePeripheral) {
+        NSString *message = [NSString stringWithFormat:@"Could not find active peripheral with UUID %@", uuid];
+        NSLog(@"%@", message);
+        
+        NSError *error = [NSError errorWithDomain:@"no_peripheral" code:500 userInfo:@{NSLocalizedDescriptionKey:message}];
+        [[self delegate] didError:error];
+        
+        return;
+    }
+
+    CBPeripheral *peripheral = [activePeripheral objectForKey:@"peripheral"];
 
     if (!peripheral) {
         NSString *message = [NSString stringWithFormat:@"Could not find active peripheral with UUID %@", uuid];
@@ -242,7 +306,9 @@ CBUUID *writeCharacteristicUUID;
     
     NSInteger dataLength = data.length;
     NSData *buffer;
-    
+    CBUUID *serviceUUID = [activePeripheral objectForKey:@"service"];
+    CBUUID *writeUUID = [activePeripheral objectForKey:@"write"];
+
     for (int i = 0; i < dataLength; i += MAX_BUFFER_LENGTH) {
         NSInteger remainLength = dataLength - i;
         NSInteger bufferLength = (remainLength > MAX_BUFFER_LENGTH) ? MAX_BUFFER_LENGTH : remainLength;
@@ -250,7 +316,7 @@ CBUUID *writeCharacteristicUUID;
         
         NSLog(@"Buffer data %li %i %@", (long)remainLength, i, [[NSString alloc] initWithData:buffer encoding:NSUTF8StringEncoding]);
         
-        [self writeValue:serialServiceUUID characteristicUUID:writeCharacteristicUUID peripheral:peripheral data:buffer];
+        [self writeValue:serviceUUID characteristicUUID:writeUUID peripheral:peripheral data:buffer];
     }
 }
 
@@ -315,7 +381,10 @@ CBUUID *writeCharacteristicUUID;
     
     [dict setValue:[NSNumber numberWithBool:FALSE] forKey:@"connected"];
     [dict setObject:activePeripheral forKey:@"peripheral"];
-    
+    [dict setObject:[CBUUID UUIDWithString:@""] forKey:@"service"];
+    [dict setObject:[CBUUID UUIDWithString:@""] forKey:@"read"];
+    [dict setObject:[CBUUID UUIDWithString:@""] forKey:@"write"];
+
     if ([self.activePeripherals count] <= 0) {
         [dict setValue:[NSNumber numberWithBool:TRUE] forKey:@"first"];
     } else {
@@ -350,6 +419,71 @@ CBUUID *writeCharacteristicUUID;
     return nil;
 }
 
+- (NSArray *)getDefaultServices
+{
+    return @[redBearLabsService, adafruitService, lairdService, blueGigaService, rongtaService, posnetService];
+}
+
+- (NSArray *)includeDefaultServices:(NSArray *)services
+{
+    NSMutableArray *includedDefaults = [NSMutableArray arrayWithArray:[services arrayByAddingObjectsFromArray:[self getDefaultServices]]];
+    NSArray *ordered = [[NSOrderedSet orderedSetWithArray:[includedDefaults valueForKey:@"service"]] array];
+    return ordered;
+}
+
+- (BOOL)validateServices:(NSArray *)services
+{
+    if ([services isKindOfClass:[NSNull class]] | ([services count] <= 0)) {
+        return TRUE;
+    }
+    
+    for (NSDictionary *service in services) {
+        NSString *s = [service objectForKey:@"service"];
+        NSString *r = [service objectForKey:@"read"];
+        NSString *w = [service objectForKey:@"write"];
+        
+        if ([self validateCBUUIDString:s] & [self validateCBUUIDString:r] & [self validateCBUUIDString:w]) {
+            continue;
+        }
+        
+        return FALSE;
+    }
+    
+    return TRUE;
+}
+
+- (NSDictionary *)servicesArrayToDictionary:(NSArray *)services
+{
+    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+    
+    if ([services count] > 0) {
+        for (NSDictionary *s in services) {
+            NSMutableDictionary *obj = [s copy];
+            NSString *service = [obj objectForKey:@"service"];
+            [dict setObject:obj forKey:service];
+        }
+    }
+    
+    return dict;
+}
+
+- (NSArray *)servicesDictionaryToArray:(NSDictionary *)services
+{
+    NSMutableArray *array = [NSMutableArray array];
+    
+    if ([services count] > 0) {
+        NSArray *keys = [services allKeys];
+        
+        for (NSString *key in keys) {
+            NSMutableDictionary *service = [[services objectForKey:key] copy];
+            [service setObject:key forKey:@"service"];
+            [array addObject:service];
+        }
+    }
+    
+    return array;
+}
+
 /*----------------------------------------------------*/
 #pragma mark - Private Methods -
 /*----------------------------------------------------*/
@@ -359,17 +493,13 @@ CBUUID *writeCharacteristicUUID;
     // Clear all peripherals
     [self.scannedPeripherals removeAllObjects];
     
-    // TODO - Allow customized service UUIDs / Read - Write Characteristics UUIDs
 #if TARGET_OS_IPHONE
-    redBearLabsServiceUUID = [CBUUID UUIDWithString:@RBL_SERVICE_UUID];
-    adafruitServiceUUID = [CBUUID UUIDWithString:@ADAFRUIT_SERVICE_UUID];
-    lairdServiceUUID = [CBUUID UUIDWithString:@LAIRD_SERVICE_UUID];
-    blueGigaServiceUUID = [CBUUID UUIDWithString:@BLUEGIGA_SERVICE_UUID];
-    rongtaSerivceUUID = [CBUUID UUIDWithString:@RONGTA_SERVICE_UUID];
-    posnetSerivceUUID = [CBUUID UUIDWithString:@POSNET_SERVICE_UUID];
+    NSArray *services = [[NSArray alloc] init];
     
-    NSArray *services = @[redBearLabsServiceUUID, adafruitServiceUUID, lairdServiceUUID, blueGigaServiceUUID, rongtaSerivceUUID, posnetSerivceUUID];
-    
+    if ([self.services count] > 0) {
+        services = [[self.services allKeys] copy];
+    }
+
     [self.manager scanForPeripheralsWithServices:services options:nil];
 #else
     [self.manager scanForPeripheralsWithServices:nil options:nil];
@@ -444,6 +574,15 @@ characteristicUUID:(CBUUID *)characteristicUUID
     } else if ((characteristic.properties & CBCharacteristicPropertyWriteWithoutResponse) == CBCharacteristicPropertyWriteWithoutResponse) {
         [peripheral writeValue:data forCharacteristic:characteristic type:CBCharacteristicWriteWithoutResponse];
     }
+}
+
+- (BOOL)validateCBUUIDString:(NSString *)CBUUIDString
+{
+    if ([CBUUIDString isKindOfClass:[NSNull class]] | [CBUUIDString isEqualToString:@""]) {
+        return FALSE;
+    }
+    
+    return (BOOL)[CBUUID UUIDWithString:CBUUIDString];
 }
 
 - (CBCharacteristic *)findCharacteristicFromUUID:(CBUUID *)UUID service:(CBService*)service
@@ -826,10 +965,23 @@ didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic
         return;
     }
     
+    NSMutableDictionary *activePeripheral = [self getFirstPeripheralDictionary:peripheral.identifier.UUIDString];
+    
+    if (!activePeripheral) {
+        NSString *message = [NSString stringWithFormat:@"Could not find active peripheral with UUID %@", peripheral.identifier.UUIDString];
+        NSLog(@"%@", message);
+        
+        NSError *error = [NSError errorWithDomain:@"no_peripheral" code:500 userInfo:@{NSLocalizedDescriptionKey:message}];
+        [[self delegate] didError:error];
+        
+        return;
+    }
+    
     static unsigned char buffer[512];
     NSInteger dataLength;
+    CBPeripheral *readUUID = [activePeripheral objectForKey:@"read"];
 
-    if ([characteristic.UUID isEqual:readCharacteristicUUID]) {
+    if ([characteristic.UUID isEqual:readUUID]) {
         dataLength = characteristic.value.length;
         [characteristic.value getBytes:buffer length:dataLength];
         [[self delegate] didReceiveData:peripheral.identifier.UUIDString data:buffer length:dataLength];
@@ -848,55 +1000,32 @@ didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic
         return;
     }
     
-    // TODO - Allow customized read/write characteristic
-    // Determine if we're connected to Red Bear Labs, Adafruit or Laird hardware
-    for (CBService *service in peripheral.services) {
-        if ([service.UUID isEqual:redBearLabsServiceUUID]) {
-            NSLog(@"RedBearLabs Bluetooth");
-            serialServiceUUID = redBearLabsServiceUUID;
-            readCharacteristicUUID = [CBUUID UUIDWithString:@RBL_CHAR_TX_UUID];
-            writeCharacteristicUUID = [CBUUID UUIDWithString:@RBL_CHAR_RX_UUID];
-            break;
-        } else if ([service.UUID isEqual:adafruitServiceUUID]) {
-            NSLog(@"Adafruit Bluefruit LE");
-            serialServiceUUID = adafruitServiceUUID;
-            readCharacteristicUUID = [CBUUID UUIDWithString:@ADAFRUIT_CHAR_TX_UUID];
-            writeCharacteristicUUID = [CBUUID UUIDWithString:@ADAFRUIT_CHAR_RX_UUID];
-            break;
-        } else if ([service.UUID isEqual:lairdServiceUUID]) {
-            NSLog(@"Laird BL600");
-            serialServiceUUID = lairdServiceUUID;
-            readCharacteristicUUID = [CBUUID UUIDWithString:@LAIRD_CHAR_TX_UUID];
-            writeCharacteristicUUID = [CBUUID UUIDWithString:@LAIRD_CHAR_RX_UUID];
-            break;
-        } else if ([service.UUID isEqual:blueGigaServiceUUID]) {
-            NSLog(@"BlueGiga Bluetooth");
-            serialServiceUUID = blueGigaServiceUUID;
-            readCharacteristicUUID = [CBUUID UUIDWithString:@BLUEGIGA_CHAR_TX_UUID];
-            writeCharacteristicUUID = [CBUUID UUIDWithString:@BLUEGIGA_CHAR_RX_UUID];
-            break;
-        } else if ([service.UUID isEqual:rongtaSerivceUUID]) {
-            NSLog(@"Rongta");
-            serialServiceUUID = rongtaSerivceUUID;
-            readCharacteristicUUID = [CBUUID UUIDWithString:@RONGTA_CHAR_TX_UUID];
-            writeCharacteristicUUID = [CBUUID UUIDWithString:@RONGTA_CHAR_RX_UUID];
-            break;
-        } else if ([service.UUID isEqual:posnetSerivceUUID]) {
-            NSLog(@"Posnet");
-            serialServiceUUID = posnetSerivceUUID;
-            readCharacteristicUUID = [CBUUID UUIDWithString:@POSNET_CHAR_TX_UUID];
-            writeCharacteristicUUID = [CBUUID UUIDWithString:@POSNET_CHAR_RX_UUID];
-            break;
-        } else {
-            // Ignore unknown services
-        }
-    }
+    NSMutableDictionary *activePeripheral = [[self.activePeripherals objectForKey:peripheral.identifier.UUIDString] copy];
 
-    // TODO - Future versions should just get characteristics we care about
-    // [peripheral discoverCharacteristics:characteristics forService:service];
-    for (int i = 0; i< peripheral.services.count; i++) {
-        CBService *s = [peripheral.services objectAtIndex:i];
-        [peripheral discoverCharacteristics:nil forService:s];
+    for (CBService *service in peripheral.services) {
+        NSDictionary *dict = [self.services objectForKey:[self CBUUIDToString:service.UUID]];
+        
+        if (dict) {
+            NSString *name = [dict objectForKey:@"name"];
+            
+            if (name) {
+                NSLog(@"%@", name);
+            }
+            
+            CBUUID *readCharacteristic = [CBUUID UUIDWithString:[dict objectForKey:@"read"]];
+            CBUUID *writeCharacteristic = [CBUUID UUIDWithString:[dict objectForKey:@"write"]];
+            
+            if (activePeripheral) {
+                [activePeripheral setObject:service.UUID forKey:@"service"];
+                [activePeripheral setObject:readCharacteristic forKey:@"read"];
+                [activePeripheral setObject:writeCharacteristic forKey:@"write"];
+                [self.activePeripherals setObject:activePeripheral forKey:peripheral.identifier.UUIDString];
+            }
+            
+            [peripheral discoverCharacteristics:@[readCharacteristic, writeCharacteristic] forService:service];
+            
+            break;
+        }
     }
 }
 

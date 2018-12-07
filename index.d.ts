@@ -20,8 +20,8 @@ export type Buffer = (data: number[]) => void;
  * @param options
  */
 export function withSubscription(options: {
-  subscriptionName?: string;
-  destroyOnWillUnmount?: boolean;
+  subscriptionName?: "subscription";
+  destroyOnWillUnmount?: true;
 }): (WrappedComponent: React.Component) => React.Component;
 
 declare namespace BluetoothSerial {
@@ -39,6 +39,15 @@ declare namespace BluetoothSerial {
     uuid: string;
     rssi: string | undefined;
   }
+
+  interface Service extends Object {
+    name?: string;
+    service: string;
+    read: string;
+    write: string;
+  }
+
+  export const DEFAULT_SERVICES: Array<Service>;
 
   /**
    * Prompts user device to enable bluetooth adapter.
@@ -188,7 +197,7 @@ declare namespace BluetoothSerial {
       data: string,
       subscription: ReactNative.EmitterSubscription
     ) => {},
-    delimiter?: string,
+    delimiter?: "",
     id?: string
   ): void;
 
@@ -198,7 +207,7 @@ declare namespace BluetoothSerial {
    * @param delimiter
    * @param id
    */
-  export function readOnce(delimiter?: string, id?: string): Promise<string>;
+  export function readOnce(delimiter?: "", id?: string): Promise<string>;
 
   /**
    * Read data from connected device every n ms.
@@ -210,8 +219,8 @@ declare namespace BluetoothSerial {
    */
   export function readEvery(
     callback: (data: string, intervalId: number) => {},
-    ms?: number,
-    delimiter?: string,
+    ms?: 1000,
+    delimiter?: "",
     id?: string
   ): void;
 
@@ -288,11 +297,32 @@ declare namespace BluetoothSerial {
   ): Promise<string>;
 
   /**
+   * [iOS] Set custom services (read and write characteristics.)
+   *
+   * @param services
+   * @param includeDefaultServices
+   */
+  export function setServices(
+    services: Array<Service>,
+    includeDefaultServices?: true
+  ): Promise<Array<Service>>;
+
+  /**
+   * [iOS] Get current services (read and write characteristics.)
+   */
+  export function getServices(): Promise<Array<Service>>;
+
+  /**
+   * [iOS] Set current services to the default ones.
+   */
+  export function restoreServices(): Promise<Array<Service>>;
+
+  /**
    * Select a specific bluetooth device and
    * give you the ability to read / write from
    * that device.
    *
-   * @param {String} id Device id or uuid
+   * @param id Device id or uuid
    */
   export function device(
     id?: string
@@ -347,7 +377,7 @@ declare namespace BluetoothSerial {
         data: string,
         subscription: ReactNative.EmitterSubscription
       ) => {},
-      delimiter?: string
+      delimiter?: ""
     ) => void;
 
     /**
@@ -355,7 +385,7 @@ declare namespace BluetoothSerial {
      *
      * @param delimiter
      */
-    readOnce: (delimiter?: string) => Promise<string>;
+    readOnce: (delimiter?: "") => Promise<string>;
 
     /**
      * Read data from the selected device every n ms.
@@ -366,8 +396,8 @@ declare namespace BluetoothSerial {
      */
     readEvery: (
       callback: (data: string, intervalId: number) => {},
-      ms?: number,
-      delimiter?: string
+      ms?: 1000,
+      delimiter?: ""
     ) => void;
 
     /**

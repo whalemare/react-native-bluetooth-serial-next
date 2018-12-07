@@ -2,6 +2,7 @@ package com.nuttawutmalee.RCTBluetoothSerial;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
 
@@ -35,6 +36,9 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
 
     // Debugging
     private static final boolean D = true;
+
+    // Constants
+    private static final String DEFAULT_SERVICES = "DEFAULT_SERVICES";
 
     // Event names
     private static final String BT_ENABLED = "bluetoothEnabled";
@@ -101,6 +105,13 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
         mReactContext.addActivityEventListener(this);
         mReactContext.addLifecycleEventListener(this);
         registerBluetoothStateReceiver();
+    }
+
+    @Override
+    public Map<String, Object> getConstants() {
+        final Map<String, Object> constants = new HashMap<>();
+        constants.put(DEFAULT_SERVICES, Arguments.createArray());
+        return constants;
     }
 
     @Override
@@ -504,6 +515,29 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
         } else {
             rejectNullBluetoothAdapter(promise);
         }
+    }
+
+    @ReactMethod
+    public void setServices(WritableArray services, Boolean includeDefaultServices, Promise promise) {
+        WritableArray updated = Arguments.createArray();
+        promise.resolve(updated);
+    }
+
+    @ReactMethod
+    public void setServices(WritableArray services, Promise promise) {
+        setServices(services, true, promise);
+    }
+
+    @ReactMethod
+    public void getServices(Promise promise) {
+        WritableArray services = Arguments.createArray();
+        promise.resolve(services);
+    }
+
+    @ReactMethod
+    public void restoreServices(Promise promise) {
+        WritableArray services = Arguments.createArray();
+        promise.resolve(services);
     }
 
     /**
