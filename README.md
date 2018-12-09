@@ -279,6 +279,14 @@ Disconnect from the specific connected bluetooth device. If `id` is omitted, the
 await BluetoothSerial.disconnect();
 ```
 
+##### disconnectAll() : <span style="color:#999;">Promise\<Boolean></span>
+
+Disconnect all connected bluetooth devices.
+
+```js
+await BluetoothSerial.disconnectAll();
+```
+
 ##### isConnected( id? : <span style="color:#999;">String</span> ) : <span style="color:#999;">Promise\<Boolean></span>
 
 Indicates the specific connected bluetooth device connection status. If `id` is omitted, it will return the connection status of the first connected device.

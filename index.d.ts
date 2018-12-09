@@ -104,6 +104,14 @@ declare namespace BluetoothSerial {
   export function disconnect(id?: string): Promise<boolean>;
 
   /**
+   * Disconnect all connected bluetooth devices.
+   *
+   * @throws this will throws an error if Android bluetooth adapter
+   *         is missing.
+   */
+  export function disconnectAll(): Promise<boolean>;
+
+  /**
    * Indicates if you are connected to the active bluetooth device / peripheral or not.
    *
    * @param id Device id or uuid

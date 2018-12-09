@@ -78,7 +78,8 @@ class RCTBluetoothSerialService {
      * @param device The BluetoothDevice to connect
      */
     synchronized void connect(BluetoothDevice device) {
-        if (D) Log.d(TAG, "connect to: " + device);
+        if (D)
+            Log.d(TAG, "connect to: " + device);
 
         String id = device.getAddress();
 
@@ -110,12 +111,13 @@ class RCTBluetoothSerialService {
     /**
      * Write to the ConnectedThread in an unsynchronized manner
      *
-     * @param id Device address
+     * @param id  Device address
      * @param out The bytes to write
      * @see ConnectedThread#write(byte[])
      */
     void write(String id, byte[] out) {
-        if (D) Log.d(TAG, "Write in service of device id " + id + ", state is " + STATE_CONNECTED);
+        if (D)
+            Log.d(TAG, "Write in service of device id " + id + ", state is " + STATE_CONNECTED);
         ConnectedThread r = null; // Create temporary object
 
         // Synchronize a copy of the ConnectedThread
@@ -143,7 +145,8 @@ class RCTBluetoothSerialService {
      * @param id Device address
      */
     synchronized void stop(String id) {
-        if (D) Log.d(TAG, "Stop device id " + id);
+        if (D)
+            Log.d(TAG, "Stop device id " + id);
 
         cancelConnectThread(id);
         cancelConnectedThread(id);
@@ -159,7 +162,8 @@ class RCTBluetoothSerialService {
      * Stop all threads of all devices
      */
     synchronized void stopAll() {
-        if (D) Log.d(TAG, "Stop all devices");
+        if (D)
+            Log.d(TAG, "Stop all devices");
 
         for (Map.Entry<String, ConnectThread> item : mConnectThreads.entrySet()) {
             ConnectThread thread = mConnectThreads.get(item.getKey());
@@ -170,7 +174,6 @@ class RCTBluetoothSerialService {
         }
 
         mConnectThreads.clear();
-
 
         for (Map.Entry<String, ConnectedThread> item : mConnectedThreads.entrySet()) {
             ConnectedThread thread = mConnectedThreads.get(item.getKey());
@@ -207,7 +210,8 @@ class RCTBluetoothSerialService {
     private synchronized void connectionSuccess(BluetoothSocket socket, BluetoothDevice device) {
         String id = device.getAddress();
 
-        if (D) Log.d(TAG, "Connected to device id " + id);
+        if (D)
+            Log.d(TAG, "Connected to device id " + id);
 
         cancelConnectThread(id); // Cancel any thread attempting to make a connection
         cancelConnectedThread(id); // Cancel any thread currently running a connection
@@ -221,13 +225,15 @@ class RCTBluetoothSerialService {
 
         if (mStates.containsKey(id)) {
             String oldState = mStates.get(id);
-            if (D) Log.d(TAG, "Device id " + id + " setState() " + oldState + " -> " + STATE_CONNECTED);
+            if (D)
+                Log.d(TAG, "Device id " + id + " setState() " + oldState + " -> " + STATE_CONNECTED);
             mStates.put(id, STATE_CONNECTED);
         }
     }
 
     /**
      * Indicate that the connection attempt failed and notify the UI Activity.
+     * 
      * @param device The BluetoothDevice that has been failed to connect
      */
     private void connectionFailed(BluetoothDevice device) {
@@ -237,6 +243,7 @@ class RCTBluetoothSerialService {
 
     /**
      * Indicate that the connection was lost and notify the UI Activity.
+     * 
      * @param device The BluetoothDevice that has been lost
      */
     private void connectionLost(BluetoothDevice device) {
@@ -285,7 +292,8 @@ class RCTBluetoothSerialService {
         private final BluetoothDevice mmDevice;
 
         ConnectThread(BluetoothDevice device) {
-            if (D) Log.d(TAG, "Create ConnectThread");
+            if (D)
+                Log.d(TAG, "Create ConnectThread");
 
             mmDevice = device;
             BluetoothSocket tmp = null;
@@ -301,7 +309,8 @@ class RCTBluetoothSerialService {
         }
 
         public void run() {
-            if (D) Log.d(TAG, "Begin mConnectThread");
+            if (D)
+                Log.d(TAG, "Begin mConnectThread");
             setName("ConnectThread");
 
             // Always cancel discovery because it will slow down a connection
@@ -311,9 +320,11 @@ class RCTBluetoothSerialService {
             try {
                 // This is a blocking call and will only return on a successful connection
                 // or an exception
-                if (D) Log.d(TAG, "Connecting to socket...");
+                if (D)
+                    Log.d(TAG, "Connecting to socket...");
                 mmSocket.connect();
-                if (D) Log.d(TAG, "Connected");
+                if (D)
+                    Log.d(TAG, "Connected");
             } catch (Exception e) {
                 Log.e(TAG, e.toString());
                 mModule.onError(e);
@@ -322,7 +333,8 @@ class RCTBluetoothSerialService {
                 // See https://github.com/don/RCTBluetoothSerialModule/issues/89
                 try {
                     Log.i(TAG, "Trying fallback...");
-                    mmSocket = (BluetoothSocket) mmDevice.getClass().getMethod("createRfcommSocket", new Class[] {int.class}).invoke(mmDevice,1);
+                    mmSocket = (BluetoothSocket) mmDevice.getClass()
+                            .getMethod("createRfcommSocket", new Class[] { int.class }).invoke(mmDevice, 1);
                     mmSocket.connect();
                     Log.i(TAG, "Connected");
                 } catch (Exception e2) {
@@ -367,12 +379,13 @@ class RCTBluetoothSerialService {
         }
 
         private BluetoothSocket createInsecureBluetoothSocket(BluetoothDevice device) throws IOException {
-            if(Build.VERSION.SDK_INT >= 10){
+            if (Build.VERSION.SDK_INT >= 10) {
                 try {
-                    final Method m = device.getClass().getMethod("createInsecureRfcommSocketToServiceRecord", new Class[] { UUID.class });
+                    final Method m = device.getClass().getMethod("createInsecureRfcommSocketToServiceRecord",
+                            new Class[] { UUID.class });
                     return (BluetoothSocket) m.invoke(device, UUID_SPP);
                 } catch (Exception e) {
-                    Log.e(TAG, "Could not create Insecure RFComm Connection",e);
+                    Log.e(TAG, "Could not create Insecure RFComm Connection", e);
                 }
             }
             return device.createRfcommSocketToServiceRecord(UUID_SPP);
@@ -390,7 +403,8 @@ class RCTBluetoothSerialService {
         private final OutputStream mmOutStream;
 
         ConnectedThread(BluetoothSocket socket, BluetoothDevice device) {
-            if (D) Log.d(TAG, "Create ConnectedThread");
+            if (D)
+                Log.d(TAG, "Create ConnectedThread");
             mmSocket = socket;
             mmDevice = device;
             InputStream tmpIn = null;
@@ -439,7 +453,8 @@ class RCTBluetoothSerialService {
         void write(byte[] buffer) {
             try {
                 String str = new String(buffer, "UTF-8");
-                if (D) Log.d(TAG, "Write in thread " + str);
+                if (D)
+                    Log.d(TAG, "Write in thread " + str);
                 mmOutStream.write(buffer);
             } catch (Exception e) {
                 Log.e(TAG, "Exception during write", e);

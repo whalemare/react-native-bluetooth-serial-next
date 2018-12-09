@@ -42,36 +42,36 @@ NSDictionary *posnetService;
         _peripheralsCountToStop = NSUIntegerMax;
         
         redBearLabsService = @{@"name": @"Red Bear Labs Service",
-                               @"service": [CBUUID UUIDWithString:@RBL_SERVICE_UUID],
-                               @"read":[CBUUID UUIDWithString:@RBL_CHAR_TX_UUID],
-                               @"write": [CBUUID UUIDWithString:@RBL_CHAR_RX_UUID]};
+                               @"service": @RBL_SERVICE_UUID,
+                               @"read": @RBL_CHAR_TX_UUID,
+                               @"write": @RBL_CHAR_RX_UUID};
         
         adafruitService = @{@"name": @"Adafruit Service",
-                            @"service": [CBUUID UUIDWithString:@ADAFRUIT_SERVICE_UUID],
-                            @"read":[CBUUID UUIDWithString:@ADAFRUIT_CHAR_TX_UUID],
-                            @"write": [CBUUID UUIDWithString:@ADAFRUIT_CHAR_RX_UUID]};
+                            @"service": @ADAFRUIT_SERVICE_UUID,
+                            @"read": @ADAFRUIT_CHAR_TX_UUID,
+                            @"write": @ADAFRUIT_CHAR_RX_UUID};
         
         lairdService = @{@"name": @"Laird Service",
-                         @"service": [CBUUID UUIDWithString:@LAIRD_SERVICE_UUID],
-                         @"read":[CBUUID UUIDWithString:@LAIRD_CHAR_TX_UUID],
-                         @"write": [CBUUID UUIDWithString:@LAIRD_CHAR_RX_UUID]};
+                         @"service": @LAIRD_SERVICE_UUID,
+                         @"read": @LAIRD_CHAR_TX_UUID,
+                         @"write": @LAIRD_CHAR_RX_UUID};
         
         blueGigaService = @{@"name": @"Blue Giga Service",
-                            @"service": [CBUUID UUIDWithString:@ADAFRUIT_SERVICE_UUID],
-                            @"read":[CBUUID UUIDWithString:@ADAFRUIT_CHAR_TX_UUID],
-                            @"write": [CBUUID UUIDWithString:@ADAFRUIT_CHAR_RX_UUID]};
+                            @"service": @ADAFRUIT_SERVICE_UUID,
+                            @"read": @ADAFRUIT_CHAR_TX_UUID,
+                            @"write": @ADAFRUIT_CHAR_RX_UUID};
         
         rongtaService = @{@"name": @"Rongta Service",
-                          @"service": [CBUUID UUIDWithString:@RONGTA_SERVICE_UUID],
-                          @"read":[CBUUID UUIDWithString:@RONGTA_CHAR_TX_UUID],
-                          @"write": [CBUUID UUIDWithString:@RONGTA_CHAR_RX_UUID]};
+                          @"service": @RONGTA_SERVICE_UUID,
+                          @"read": @RONGTA_CHAR_TX_UUID,
+                          @"write": @RONGTA_CHAR_RX_UUID};
         
         posnetService = @{@"name": @"POSNET Service",
-                          @"service": [CBUUID UUIDWithString:@POSNET_SERVICE_UUID],
-                          @"read":[CBUUID UUIDWithString:@POSNET_CHAR_TX_UUID],
-                          @"write": [CBUUID UUIDWithString:@POSNET_CHAR_RX_UUID]};
+                          @"service": @POSNET_SERVICE_UUID,
+                          @"read": @POSNET_CHAR_TX_UUID,
+                          @"write": @POSNET_CHAR_RX_UUID};
         
-        _services = [self servicesArrayToDictionary:[self getDefaultServices]];
+        _bleServices = [self servicesArrayToDictionary:[self getDefaultServices]];
 
         _manager = [[CBCentralManager alloc] initWithDelegate:self queue:nil options:[NSDictionary dictionaryWithObject:[NSNumber numberWithBool:YES] forKey:CBCentralManagerOptionShowPowerAlertKey]];
     }
@@ -381,9 +381,9 @@ NSDictionary *posnetService;
     
     [dict setValue:[NSNumber numberWithBool:FALSE] forKey:@"connected"];
     [dict setObject:activePeripheral forKey:@"peripheral"];
-    [dict setObject:[CBUUID UUIDWithString:@""] forKey:@"service"];
-    [dict setObject:[CBUUID UUIDWithString:@""] forKey:@"read"];
-    [dict setObject:[CBUUID UUIDWithString:@""] forKey:@"write"];
+    [dict setObject:@"" forKey:@"service"];
+    [dict setObject:@"" forKey:@"read"];
+    [dict setObject:@"" forKey:@"write"];
 
     if ([self.activePeripherals count] <= 0) {
         [dict setValue:[NSNumber numberWithBool:TRUE] forKey:@"first"];
@@ -433,7 +433,7 @@ NSDictionary *posnetService;
 
 - (BOOL)validateServices:(NSArray *)services
 {
-    if ([services isKindOfClass:[NSNull class]] | ([services count] <= 0)) {
+    if ([services isKindOfClass:[NSNull class]] | ([services count] <= 0) | (services == nil)) {
         return TRUE;
     }
     
@@ -458,7 +458,7 @@ NSDictionary *posnetService;
     
     if ([services count] > 0) {
         for (NSDictionary *s in services) {
-            NSMutableDictionary *obj = [s copy];
+            NSMutableDictionary *obj = [[NSMutableDictionary alloc] initWithDictionary:s];
             NSString *service = [obj objectForKey:@"service"];
             [dict setObject:obj forKey:service];
         }
@@ -475,7 +475,7 @@ NSDictionary *posnetService;
         NSArray *keys = [services allKeys];
         
         for (NSString *key in keys) {
-            NSMutableDictionary *service = [[services objectForKey:key] copy];
+            NSMutableDictionary *service = [[NSMutableDictionary alloc] initWithDictionary:[services objectForKey:key]];
             [service setObject:key forKey:@"service"];
             [array addObject:service];
         }
@@ -494,10 +494,14 @@ NSDictionary *posnetService;
     [self.scannedPeripherals removeAllObjects];
     
 #if TARGET_OS_IPHONE
-    NSArray *services = [[NSArray alloc] init];
-    
-    if ([self.services count] > 0) {
-        services = [[self.services allKeys] copy];
+    NSMutableArray *services = [[NSMutableArray alloc] init];
+
+    if ([self.bleServices count] > 0) {
+        NSArray *keys = [self.bleServices allKeys];
+        
+        for (NSString *key in keys) {
+            [services addObject:[CBUUID UUIDWithString:key]];
+        }
     }
 
     [self.manager scanForPeripheralsWithServices:services options:nil];
@@ -578,7 +582,7 @@ characteristicUUID:(CBUUID *)characteristicUUID
 
 - (BOOL)validateCBUUIDString:(NSString *)CBUUIDString
 {
-    if ([CBUUIDString isKindOfClass:[NSNull class]] | [CBUUIDString isEqualToString:@""]) {
+    if ([CBUUIDString isKindOfClass:[NSNull class]] | [CBUUIDString isEqualToString:@""] | (CBUUIDString == nil)) {
         return FALSE;
     }
     
@@ -743,26 +747,27 @@ characteristicUUID:(CBUUID *)characteristicUUID
 
 - (NSMutableDictionary *)getFirstPeripheralDictionary:(NSString *)uuid
 {
-    NSMutableDictionary *dict = nil;
-    
-    if (([uuid length] <= 0) | [uuid isEqualToString:@""] | [uuid isKindOfClass:[NSNull class]]) {
+    if (([uuid length] <= 0) | [uuid isEqualToString:@""] | [uuid isKindOfClass:[NSNull class]] | (uuid == nil)) {
         for (NSString *key in self.activePeripherals) {
-            NSMutableDictionary *d = [self.activePeripherals objectForKey:key];
-            
-            if (!d) {
+            NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithDictionary:[self.activePeripherals objectForKey:key]];
+
+            if (!dict) {
                 continue;
             }
             
-            if ((BOOL)[d valueForKey:@"first"]) {
-                dict = [d copy];
-                break;
+            if ((BOOL)[dict valueForKey:@"first"]) {
+                return dict;
             }
         }
-    } else if ([[self.activePeripherals allKeys] containsObject:uuid]) {
-        dict = [[self.activePeripherals objectForKey:uuid] copy];
+        
+        return nil;
+    }
+    
+    if ([[self.activePeripherals allKeys] containsObject:uuid]) {
+        return [self.activePeripherals objectForKey:uuid];
     }
 
-    return dict;
+    return nil;
 }
 
 /*----------------------------------------------------*/
@@ -784,8 +789,8 @@ characteristicUUID:(CBUUID *)characteristicUUID
         
         if ([self.activePeripherals count] > 0) {
             for (NSString *key in self.activePeripherals) {
-                NSMutableDictionary *dict = [self.activePeripherals objectForKey:key];
-                
+                NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithDictionary:[self.activePeripherals objectForKey:key]];
+
                 if (!dict) {
                     continue;
                 }
@@ -807,8 +812,8 @@ characteristicUUID:(CBUUID *)characteristicUUID
 {
     NSLog(@"Connected to %@ successful", peripheral.identifier.UUIDString);
 
-    NSMutableDictionary *dict = [self.activePeripherals objectForKey:peripheral.identifier.UUIDString];
-    
+    NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithDictionary:[self.activePeripherals objectForKey:peripheral.identifier.UUIDString]];
+
     if (dict) {
         [dict setObject:peripheral forKey:@"peripheral"];
         [self.activePeripherals setObject:dict forKey:peripheral.identifier.UUIDString];
@@ -821,8 +826,8 @@ characteristicUUID:(CBUUID *)characteristicUUID
 didFailToConnectPeripheral:(CBPeripheral *)peripheral
                  error:(NSError *)error
 {
-    NSMutableDictionary *dict = [self.activePeripherals objectForKey:peripheral.identifier.UUIDString];
-    
+    NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithDictionary:[self.activePeripherals objectForKey:peripheral.identifier.UUIDString]];
+
     if (dict) {
         CBPeripheral *activePeripheral = [dict objectForKey:@"peripheral"];
         activePeripheral.delegate = nil;
@@ -844,8 +849,8 @@ didFailToConnectPeripheral:(CBPeripheral *)peripheral
 didDisconnectPeripheral:(CBPeripheral *)peripheral
                 error:(NSError *)error
 {
-    NSMutableDictionary *dict = [self.activePeripherals objectForKey:peripheral.identifier.UUIDString];
-    
+    NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithDictionary:[self.activePeripherals objectForKey:peripheral.identifier.UUIDString]];
+
     if (dict) {
         CBPeripheral *activePeripheral = [dict objectForKey:@"peripheral"];
         activePeripheral.delegate = nil;
@@ -922,31 +927,21 @@ didDiscoverCharacteristicsForService:(CBService *)service
     }
     
     NSLog(@"Characteristics of service with UUID : %@ found\n", [self CBUUIDToString:service.UUID]);
-
-    BOOL connected = FALSE;
-
-    for (int i = 0; i < service.characteristics.count; i++) {
-        CBCharacteristic *characteristic = [service.characteristics objectAtIndex:i];
-        NSLog(@"Found characteristic %@\n", [self CBUUIDToString:characteristic.UUID]);
-
-        CBService *s = [peripheral.services objectAtIndex:(peripheral.services.count - 1)];
+    
+    NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithDictionary:[self.activePeripherals objectForKey:peripheral.identifier.UUIDString]];
+    
+    if (dict) {
+        CBPeripheral *activePeripheral = [dict objectForKey:@"peripheral"];
         
-        if ([service.UUID isEqual:s.UUID] & self.isCentralReady & !connected) {
-            CBPeripheral *activePeripheral;
-            NSMutableDictionary *dict = [self.activePeripherals objectForKey:peripheral.identifier.UUIDString];
+        if (activePeripheral) {
+            [self enableReadNotification:activePeripheral];
+            [[self delegate] didConnect:activePeripheral];
+            [dict setValue:[NSNumber numberWithBool:TRUE] forKey:@"connected"];
+            [self.activePeripherals setObject:dict forKey:peripheral.identifier.UUIDString];
             
-            if (dict) {
-                activePeripheral = [dict objectForKey:@"peripheral"];
-                
-                if (activePeripheral) {
-                    connected = TRUE;
-                    
-                    [self enableReadNotification:activePeripheral];
-                    [[self delegate] didConnect:activePeripheral];
-                    [dict setValue:[NSNumber numberWithBool:TRUE] forKey:@"connected"];
-                    [self.activePeripherals setObject:dict forKey:peripheral.identifier.UUIDString];
-                }
-            }
+            NSLog(@"Connection with %@ completed", peripheral.identifier.UUIDString);
+            
+            return;
         }
     }
 }
@@ -1000,16 +995,19 @@ didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic
         return;
     }
     
-    NSMutableDictionary *activePeripheral = [[self.activePeripherals objectForKey:peripheral.identifier.UUIDString] copy];
+    NSLog(@"Service discovery for %@ successful", peripheral.identifier.UUIDString);
+
+    NSMutableDictionary *activePeripheral = [[NSMutableDictionary alloc] initWithDictionary:[self.activePeripherals objectForKey:peripheral.identifier.UUIDString]];
 
     for (CBService *service in peripheral.services) {
-        NSDictionary *dict = [self.services objectForKey:[self CBUUIDToString:service.UUID]];
-        
+        NSString *uuid = [self CBUUIDToString:service.UUID];
+        NSDictionary *dict = [self.bleServices objectForKey:uuid];
+
         if (dict) {
             NSString *name = [dict objectForKey:@"name"];
             
             if (name) {
-                NSLog(@"%@", name);
+                NSLog(@"Discovered service : %@", name);
             }
             
             CBUUID *readCharacteristic = [CBUUID UUIDWithString:[dict objectForKey:@"read"]];

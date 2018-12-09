@@ -65,6 +65,33 @@ export const withSubscription = (
   };
 };
 
+// Overloading
+const {
+  disconnect,
+  isConnected,
+  readFromDevice,
+  readUntilDelimiter,
+  writeToDevice,
+  clear,
+  available,
+  withDelimiter,
+  listUnpaired,
+  cancelDiscovery
+} = BluetoothSerial;
+
+BluetoothSerial.disconnect = (id = null) => disconnect(id);
+BluetoothSerial.isConnected = (id = null) => isConnected(id);
+BluetoothSerial.readFromDevice = (id = null) => readFromDevice(id);
+BluetoothSerial.readUntilDelimiter = (delimiter, id = null) =>
+  readUntilDelimiter(delimiter, id);
+BluetoothSerial.writeToDevice = (data, id = null) => writeToDevice(data, id);
+BluetoothSerial.clear = (id = null) => clear(id);
+BluetoothSerial.available = (id = null) => available(id);
+BluetoothSerial.withDelimiter = (delimiter, id = null) =>
+  withDelimiter(delimiter, id);
+BluetoothSerial.discoverUnpairedDevices = listUnpaired;
+BluetoothSerial.stopScanning = cancelDiscovery;
+
 /**
  * Select a specific bluetooth device and
  * give you the ability to read / write from
@@ -382,8 +409,5 @@ BluetoothSerial.write = (data, id = null) => {
   }
   return BluetoothSerial.writeToDevice(data.toString("base64"), id);
 };
-
-BluetoothSerial.discoverUnpairedDevices = BluetoothSerial.listUnpaired;
-BluetoothSerial.stopScanning = BluetoothSerial.cancelDiscovery;
 
 export default BluetoothSerial;

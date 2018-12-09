@@ -117,7 +117,7 @@ typedef void (^CentralManagerDiscoverPeripheralsCallback) (NSMutableArray *perip
 /*!
  * The active peripherals that each has been paired and connected.
  */
-@property (strong, nonatomic) NSMutableDictionary *activePeripherals;
+@property (nonatomic, copy) NSMutableDictionary *activePeripherals;
 
 /*!
  * CBCentralManager's state updated by centralManagerDidUpdateState:
@@ -139,7 +139,7 @@ typedef void (^CentralManagerDiscoverPeripheralsCallback) (NSMutableArray *perip
 /*!
  * Available BLE services, read and write characteristics.
  */
-@property (assign, nonatomic) NSDictionary *services;
+@property (strong, nonatomic) NSDictionary *bleServices;
 
 /*!
  * Completion block for peripheral scanning.

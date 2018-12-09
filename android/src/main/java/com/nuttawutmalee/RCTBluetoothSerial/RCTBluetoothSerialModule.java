@@ -53,7 +53,7 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
     // Other stuff
     private static final int REQUEST_ENABLE_BLUETOOTH = 1;
     private static final int REQUEST_PAIR_DEVICE = 2;
-    private static final String FIRST_DEVICE  = "firstDevice";
+    private static final String FIRST_DEVICE = "firstDevice";
 
     // Members
     private BluetoothAdapter mBluetoothAdapter;
@@ -72,7 +72,8 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
     public RCTBluetoothSerialModule(ReactApplicationContext reactContext) {
         super(reactContext);
 
-        if (D) Log.d(TAG, "Bluetooth module started");
+        if (D)
+            Log.d(TAG, "Bluetooth module started");
 
         mReactContext = reactContext;
 
@@ -121,17 +122,20 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
 
     // @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (D) Log.d(TAG, "On activity result request: " + requestCode + ", result: " + resultCode);
+        if (D)
+            Log.d(TAG, "On activity result request: " + requestCode + ", result: " + resultCode);
 
         if (requestCode == REQUEST_ENABLE_BLUETOOTH) {
             if (resultCode == Activity.RESULT_OK) {
-                if (D) Log.d(TAG, "User enabled Bluetooth");
+                if (D)
+                    Log.d(TAG, "User enabled Bluetooth");
                 if (mEnabledPromise != null) {
                     mEnabledPromise.resolve(true);
                     mEnabledPromise = null;
                 }
             } else {
-                if (D) Log.d(TAG, "User did not enable Bluetooth");
+                if (D)
+                    Log.d(TAG, "User did not enable Bluetooth");
                 if (mEnabledPromise != null) {
                     mEnabledPromise.reject(new Exception("User did not enable Bluetooth"));
                     mEnabledPromise = null;
@@ -141,26 +145,31 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
 
         if (requestCode == REQUEST_PAIR_DEVICE) {
             if (resultCode == Activity.RESULT_OK) {
-                if (D) Log.d(TAG, "Pairing ok");
+                if (D)
+                    Log.d(TAG, "Pairing ok");
             } else {
-                if (D) Log.d(TAG, "Pairing failed");
+                if (D)
+                    Log.d(TAG, "Pairing failed");
             }
         }
     }
 
     // @Override
     public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
-        if (D) Log.d(TAG, "On activity result request: " + requestCode + ", result: " + resultCode);
+        if (D)
+            Log.d(TAG, "On activity result request: " + requestCode + ", result: " + resultCode);
 
         if (requestCode == REQUEST_ENABLE_BLUETOOTH) {
             if (resultCode == Activity.RESULT_OK) {
-                if (D) Log.d(TAG, "User enabled Bluetooth");
+                if (D)
+                    Log.d(TAG, "User enabled Bluetooth");
                 if (mEnabledPromise != null) {
                     mEnabledPromise.resolve(true);
                     mEnabledPromise = null;
                 }
             } else {
-                if (D) Log.d(TAG, "User did not enable Bluetooth");
+                if (D)
+                    Log.d(TAG, "User did not enable Bluetooth");
                 if (mEnabledPromise != null) {
                     mEnabledPromise.reject(new Exception("User did not enable Bluetooth"));
                     mEnabledPromise = null;
@@ -170,37 +179,44 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
 
         if (requestCode == REQUEST_PAIR_DEVICE) {
             if (resultCode == Activity.RESULT_OK) {
-                if (D) Log.d(TAG, "Pairing ok");
+                if (D)
+                    Log.d(TAG, "Pairing ok");
             } else {
-                if (D) Log.d(TAG, "Pairing failed");
+                if (D)
+                    Log.d(TAG, "Pairing failed");
             }
         }
     }
 
     // @Override
     public void onNewIntent(Intent intent) {
-        if (D) Log.d(TAG, "On new intent");
+        if (D)
+            Log.d(TAG, "On new intent");
     }
 
     @Override
     public void onHostResume() {
-        if (D) Log.d(TAG, "Host resume");
+        if (D)
+            Log.d(TAG, "Host resume");
     }
 
     @Override
     public void onHostPause() {
-        if (D) Log.d(TAG, "Host pause");
+        if (D)
+            Log.d(TAG, "Host pause");
     }
 
     @Override
     public void onHostDestroy() {
-        if (D) Log.d(TAG, "Host destroy");
+        if (D)
+            Log.d(TAG, "Host destroy");
         mBluetoothService.stopAll();
     }
 
     @Override
     public void onCatalystInstanceDestroy() {
-        if (D) Log.d(TAG, "Catalyst instance destroyed");
+        if (D)
+            Log.d(TAG, "Catalyst instance destroyed");
         super.onCatalystInstanceDestroy();
         mBluetoothService.stopAll();
     }
@@ -235,12 +251,14 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
     public void enable(Promise promise) {
         if (mBluetoothAdapter != null) {
             if (mBluetoothAdapter.isEnabled()) {
-                if (D) Log.d(TAG, "Bluetooth enabled");
+                if (D)
+                    Log.d(TAG, "Bluetooth enabled");
                 promise.resolve(true);
             } else {
                 try {
                     mBluetoothAdapter.enable();
-                    if (D) Log.d(TAG, "Bluetooth enabled");
+                    if (D)
+                        Log.d(TAG, "Bluetooth enabled");
                     promise.resolve(true);
                 } catch (Exception e) {
                     Log.e(TAG, "Cannot enable bluetooth");
@@ -257,12 +275,14 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
     public void disable(Promise promise) {
         if (mBluetoothAdapter != null) {
             if (!mBluetoothAdapter.isEnabled()) {
-                if (D) Log.d(TAG, "Bluetooth disabled");
+                if (D)
+                    Log.d(TAG, "Bluetooth disabled");
                 promise.resolve(true);
             } else {
                 try {
                     mBluetoothAdapter.disable();
-                    if (D) Log.d(TAG, "Bluetooth disabled");
+                    if (D)
+                        Log.d(TAG, "Bluetooth disabled");
                     promise.resolve(true);
                 } catch (Exception e) {
                     Log.e(TAG, "Cannot disable bluetooth");
@@ -286,7 +306,8 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
 
     @ReactMethod
     public void list(Promise promise) {
-        if (D) Log.d(TAG, "List paired called");
+        if (D)
+            Log.d(TAG, "List paired called");
 
         if (mBluetoothAdapter != null) {
             WritableArray deviceList = Arguments.createArray();
@@ -305,7 +326,8 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
 
     @ReactMethod
     public void listUnpaired(Promise promise) {
-        if (D) Log.d(TAG, "Discover unpaired called");
+        if (D)
+            Log.d(TAG, "Discover unpaired called");
 
         if (mBluetoothAdapter != null) {
             mDeviceDiscoveryPromise = promise;
@@ -318,7 +340,8 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
 
     @ReactMethod
     public void cancelDiscovery(Promise promise) {
-        if (D) Log.d(TAG, "Cancel discovery called");
+        if (D)
+            Log.d(TAG, "Cancel discovery called");
 
         if (mBluetoothAdapter != null) {
             if (mBluetoothAdapter.isDiscovering()) {
@@ -332,7 +355,8 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
 
     @ReactMethod
     public void pairDevice(String id, Promise promise) {
-        if (D) Log.d(TAG, "Pair device: " + id);
+        if (D)
+            Log.d(TAG, "Pair device: " + id);
 
         if (mBluetoothAdapter != null) {
             BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(id);
@@ -350,7 +374,8 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
 
     @ReactMethod
     public void unpairDevice(String id, Promise promise) {
-        if (D) Log.d(TAG, "Unpair device: " + id);
+        if (D)
+            Log.d(TAG, "Unpair device: " + id);
 
         if (mBluetoothAdapter != null) {
             BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(id);
@@ -368,7 +393,8 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
 
     @ReactMethod
     public void connect(String id, Promise promise) {
-        if (D) Log.d(TAG, "connect");
+        if (D)
+            Log.d(TAG, "connect");
 
         if (mBluetoothAdapter != null) {
             BluetoothDevice rawDevice = mBluetoothAdapter.getRemoteDevice(id);
@@ -387,16 +413,23 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
 
     @ReactMethod
     public void disconnect(String id, Promise promise) {
-        if (D) Log.d(TAG, "Disconnect from device id " + id);
-
         if (id == null) {
             id = mBluetoothService.getFirstDeviceAddress();
         }
+
+        if (D)
+            Log.d(TAG, "Disconnect from device id " + id);
 
         if (id != null) {
             mBluetoothService.stop(id);
         }
 
+        promise.resolve(true);
+    }
+
+    @ReactMethod
+    public void disconnectAll(Promise promise) {
+        mBluetoothService.stopAll();
         promise.resolve(true);
     }
 
@@ -416,11 +449,12 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
 
     @ReactMethod
     public void writeToDevice(String message, String id, Promise promise) {
-        if (D) Log.d(TAG, "Write to device id " + id + " : " + message);
-
         if (id == null) {
             id = mBluetoothService.getFirstDeviceAddress();
         }
+
+        if (D)
+            Log.d(TAG, "Write to device id " + id + " : " + message);
 
         if (id != null) {
             byte[] data = Base64.decode(message, Base64.DEFAULT);
@@ -432,11 +466,12 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
 
     @ReactMethod
     public void readFromDevice(String id, Promise promise) {
-        if (D) Log.d(TAG, "Read from device id " + id);
-
         if (id == null) {
-           id = mBluetoothService.getFirstDeviceAddress();
+            id = mBluetoothService.getFirstDeviceAddress();
         }
+
+        if (D)
+            Log.d(TAG, "Read from device id " + id);
 
         String data = "";
 
@@ -462,11 +497,12 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
 
     @ReactMethod
     public void withDelimiter(String delimiter, String id, Promise promise) {
-        if (D) Log.d(TAG, "Set delimiter of device id " + id + " to " + delimiter);
-
         if (id == null) {
             id = mBluetoothService.getFirstDeviceAddress();
         }
+
+        if (D)
+            Log.d(TAG, "Set delimiter of device id " + id + " to " + delimiter);
 
         if (id != null) {
             mDelimiters.put(id, delimiter);
@@ -478,7 +514,6 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
     @ReactMethod
     public void clear(String id, Promise promise) {
         if (id == null) {
-
             id = mBluetoothService.getFirstDeviceAddress();
         }
 
@@ -524,11 +559,6 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
     }
 
     @ReactMethod
-    public void setServices(WritableArray services, Promise promise) {
-        setServices(services, true, promise);
-    }
-
-    @ReactMethod
     public void getServices(Promise promise) {
         WritableArray services = Arguments.createArray();
         promise.resolve(services);
@@ -543,12 +573,12 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
     /**
      * Handle connection success
      * 
-     * @param msg Additional message
+     * @param msg             Additional message
      * @param connectedDevice Connected device
      */
     void onConnectionSuccess(String msg, BluetoothDevice connectedDevice) {
         WritableMap params = Arguments.createMap();
-        WritableMap device  = deviceToWritableMap(connectedDevice);
+        WritableMap device = deviceToWritableMap(connectedDevice);
 
         params.putMap("device", device);
         params.putString("message", msg);
@@ -576,12 +606,12 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
     /**
      * handle connection failure
      * 
-     * @param msg Additional message
+     * @param msg             Additional message
      * @param connectedDevice Connected device
      */
     void onConnectionFailed(String msg, BluetoothDevice connectedDevice) {
         WritableMap params = Arguments.createMap();
-        WritableMap device  = deviceToWritableMap(connectedDevice);
+        WritableMap device = deviceToWritableMap(connectedDevice);
 
         params.putMap("device", device);
         params.putString("message", msg);
@@ -601,12 +631,12 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
     /**
      * Handle lost connection
      * 
-     * @param msg Message
+     * @param msg             Message
      * @param connectedDevice Connected device
      */
     void onConnectionLost(String msg, BluetoothDevice connectedDevice) {
         WritableMap params = Arguments.createMap();
-        WritableMap device  = deviceToWritableMap(connectedDevice);
+        WritableMap device = deviceToWritableMap(connectedDevice);
 
         params.putMap("device", device);
         params.putString("message", msg);
@@ -629,7 +659,7 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
     /**
      * Handle read
      *
-     * @param id Device address
+     * @param id   Device address
      * @param data Message
      */
     void onData(String id, String data) {
@@ -659,7 +689,7 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
     /**
      * Handle read until find a certain delimiter
      *
-     * @param id Device address
+     * @param id        Device address
      * @param delimiter
      * @return buffer data from device
      */
@@ -697,7 +727,8 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
      */
     private void sendEvent(String eventName, @Nullable WritableMap params) {
         if (mReactContext.hasActiveCatalystInstance()) {
-            if (D) Log.d(TAG, "Sending event: " + eventName);
+            if (D)
+                Log.d(TAG, "Sending event: " + eventName);
             mReactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(eventName, params);
         }
     }
@@ -708,7 +739,8 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
      * @param device Bluetooth device
      */
     private WritableMap deviceToWritableMap(BluetoothDevice device) {
-        if (D) Log.d(TAG, "device" + device.toString());
+        if (D)
+            Log.d(TAG, "device" + device.toString());
 
         WritableMap params = Arguments.createMap();
 
@@ -732,7 +764,8 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
      */
     private void pairDevice(BluetoothDevice device) {
         try {
-            if (D) Log.d(TAG, "Start Pairing...");
+            if (D)
+                Log.d(TAG, "Start Pairing...");
             Method m = device.getClass().getMethod("createBond", (Class[]) null);
             m.invoke(device, (Object[]) null);
             registerDevicePairingReceiver(device, BluetoothDevice.BOND_BONDED);
@@ -753,7 +786,8 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
      */
     private void unpairDevice(BluetoothDevice device) {
         try {
-            if (D) Log.d(TAG, "Start Unpairing...");
+            if (D)
+                Log.d(TAG, "Start Unpairing...");
             Method m = device.getClass().getMethod("removeBond", (Class[]) null);
             m.invoke(device, (Object[]) null);
             registerDevicePairingReceiver(device, BluetoothDevice.BOND_NONE);
@@ -769,6 +803,7 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
 
     /**
      * Return reject promise for null bluetooth adapter
+     * 
      * @param promise
      */
     private void rejectNullBluetoothAdapter(Promise promise) {
@@ -781,7 +816,7 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
     /**
      * Register receiver for device pairing
      * 
-     * @param rawDevice Bluetooth device
+     * @param rawDevice     Bluetooth device
      * @param requiredState State that we require
      */
     private void registerDevicePairingReceiver(final BluetoothDevice rawDevice, final int requiredState) {
@@ -801,7 +836,8 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
                             BluetoothDevice.ERROR);
 
                     if (state == BluetoothDevice.BOND_BONDED && prevState == BluetoothDevice.BOND_BONDING) {
-                        if (D) Log.d(TAG, "Device paired");
+                        if (D)
+                            Log.d(TAG, "Device paired");
                         if (mPairDevicePromise != null) {
                             mPairDevicePromise.resolve(device);
                             mPairDevicePromise = null;
@@ -813,7 +849,8 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
                             onError(e);
                         }
                     } else if (state == BluetoothDevice.BOND_NONE && prevState == BluetoothDevice.BOND_BONDED) {
-                        if (D) Log.d(TAG, "Device unpaired");
+                        if (D)
+                            Log.d(TAG, "Device unpaired");
                         if (mPairDevicePromise != null) {
                             mPairDevicePromise.resolve(device);
                             mPairDevicePromise = null;
@@ -849,19 +886,23 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
 
-                if (D) Log.d(TAG, "onReceive called");
+                if (D)
+                    Log.d(TAG, "onReceive called");
 
                 if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)) {
-                    if (D) Log.d(TAG, "Discovery started");
+                    if (D)
+                        Log.d(TAG, "Discovery started");
                 } else if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                     BluetoothDevice rawDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
-                    if (D) Log.d(TAG, "Discovery extra device (device id: " + rawDevice.getAddress() + ")");
+                    if (D)
+                        Log.d(TAG, "Discovery extra device (device id: " + rawDevice.getAddress() + ")");
 
                     WritableMap device = deviceToWritableMap(rawDevice);
                     unpairedDevices.pushMap(device);
                 } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-                    if (D) Log.d(TAG, "Discovery finished");
+                    if (D)
+                        Log.d(TAG, "Discovery finished");
 
                     if (mDeviceDiscoveryPromise != null) {
                         mDeviceDiscoveryPromise.resolve(unpairedDevices);
@@ -895,16 +936,19 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
 
-                if (D) Log.d(TAG, "onReceive called");
+                if (D)
+                    Log.d(TAG, "onReceive called");
 
                 if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)) {
-                    if (D) Log.d(TAG, "Discovery started");
+                    if (D)
+                        Log.d(TAG, "Discovery started");
                 } else if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                     BluetoothDevice rawDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
                     String id = rawDevice.getAddress();
 
-                    if (D) Log.d(TAG, "Discovery first available device (device id: " + id + ")");
+                    if (D)
+                        Log.d(TAG, "Discovery first available device (device id: " + id + ")");
 
                     mBluetoothService.connect(rawDevice);
 
@@ -949,11 +993,13 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
                     final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
                     switch (state) {
                     case BluetoothAdapter.STATE_OFF:
-                        if (D) Log.d(TAG, "Bluetooth was disabled");
+                        if (D)
+                            Log.d(TAG, "Bluetooth was disabled");
                         sendEvent(BT_DISABLED, null);
                         break;
                     case BluetoothAdapter.STATE_ON:
-                        if (D) Log.d(TAG, "Bluetooth was enabled");
+                        if (D)
+                            Log.d(TAG, "Bluetooth was enabled");
                         sendEvent(BT_ENABLED, null);
                         break;
                     default:

@@ -220,6 +220,33 @@ RCT_EXPORT_METHOD(disconnect:(NSString *)uuid
     resolve((id)kCFBooleanTrue);
 }
 
+RCT_EXPORT_METHOD(disconnectAll:(RCTPromiseResolveBlock)resolve rejector:(RCTPromiseRejectBlock)reject)
+{
+    NSLog(@"Disconnect from all peripherals");
+    
+    NSMutableDictionary *peripherals = [[NSMutableDictionary alloc] initWithDictionary:self.ble.activePeripherals];
+    
+    if ([peripherals count] > 0) {
+        NSArray *keys = [peripherals allKeys];
+        
+        for (NSString *key in keys) {
+            NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithDictionary:[peripherals objectForKey:key]];
+            
+            if (dict) {
+                CBPeripheral *p = [dict objectForKey:@"peripheral"];
+                
+                if (p) {
+                    if (p.state == CBPeripheralStateConnected) {
+                        [self.ble disconnectFromPeripheral:p];
+                    }
+                }
+            }
+        }
+    }
+
+    resolve((id)kCFBooleanTrue);
+}
+
 RCT_EXPORT_METHOD(isConnected:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejector:(RCTPromiseRejectBlock)reject)
@@ -238,11 +265,11 @@ RCT_EXPORT_METHOD(withDelimiter:(NSString *)delimiter
 {
     NSMutableString *deviceUUID = nil;
 
-    if (![delimiter isKindOfClass:[NSNull class]]) {
+    if (![delimiter isKindOfClass:[NSNull class]] | (uuid == nil)) {
         NSMutableString *newDelimiter = [[NSMutableString alloc] initWithString:delimiter];
         NSLog(@"Set delimiter to %@ for UUID : %@", newDelimiter, uuid);
         
-        if ([uuid isKindOfClass:[NSNull class]]) {
+        if ([uuid isKindOfClass:[NSNull class]] | (uuid == nil)) {
             CBPeripheral *activePeripheral = [self.ble getActivePeripheral:uuid];
             
             if (activePeripheral) {
@@ -264,7 +291,7 @@ RCT_EXPORT_METHOD(clear:(NSString *)uuid
 {
     NSMutableString *activeUUID = nil;
     
-    if ([uuid isKindOfClass:[NSNull class]]) {
+    if ([uuid isKindOfClass:[NSNull class]] | (uuid == nil)) {
         CBPeripheral *activePeripheral = [self.ble getActivePeripheral:uuid];
         
         if (activePeripheral) {
@@ -291,7 +318,7 @@ RCT_EXPORT_METHOD(available:(NSString *)uuid
 {
     NSMutableString *activeUUID = nil;
     
-    if ([uuid isKindOfClass:[NSNull class]]) {
+    if ([uuid isKindOfClass:[NSNull class]] | (uuid == nil)) {
         CBPeripheral *activePeripheral = [self.ble getActivePeripheral:uuid];
         
         if (activePeripheral) {
@@ -328,14 +355,15 @@ RCT_EXPORT_METHOD(setServices:(NSArray *)services
                   rejector:(RCTPromiseRejectBlock)reject)
 {
     if ([self.ble validateServices:services]) {
-        NSMutableArray *mutableServices = [NSMutableArray arrayWithArray:services];
-        
+        NSMutableArray *mutableServices = [[NSMutableArray alloc] initWithArray:services];
+
         if (includeDefault) {
-            mutableServices = [self.ble includeDefaultServices:mutableServices] copy];
+            mutableServices = [[NSMutableArray alloc] initWithArray:[self.ble includeDefaultServices:mutableServices]];
         }
         
-        [self.ble setServices:[self.ble servicesArrayToDictionary:mutableServices]];
-        NSArray *services = [self.ble servicesDictionaryToArray:[self.ble services]];
+        [self.ble setBleServices:[self.ble servicesArrayToDictionary:mutableServices]];
+        
+        NSArray *services = [self.ble servicesDictionaryToArray:self.ble.bleServices];
         resolve(services);
     } else {
         NSString *message = @"Invalid array of service objects";
@@ -345,23 +373,16 @@ RCT_EXPORT_METHOD(setServices:(NSArray *)services
     }
 }
 
-RCT_EXPORT_METHOD(setServices:(NSArray *)services
-                  resolver:(RCTPromiseResolveBlock)resolve
-                  rejector:(RCTPromiseRejectBlock)reject)
-{
-    [self setServices:services includeDefaultServices:TRUE resolver:resolve rejector:reject];
-}
-
 RCT_EXPORT_METHOD(getServices:(RCTPromiseResolveBlock)resolve rejector:(RCTPromiseRejectBlock)reject)
 {
-    NSArray *services = [self.ble servicesDictionaryToArray:[self.ble services]];
+    NSArray *services = [self.ble servicesDictionaryToArray:self.ble.bleServices];
     resolve(services);
 }
 
 RCT_EXPORT_METHOD(restoreServices:(RCTPromiseResolveBlock)resolve rejector:(RCTPromiseRejectBlock)reject)
 {
-    [self.ble setServices:[self.ble servicesArrayToDictionary:[self.ble getDefaultServices]]];
-    NSArray *services = [self.ble servicesDictionaryToArray:[self.ble services]];
+    [self.ble setBleServices:[self.ble servicesArrayToDictionary:[self.ble getDefaultServices]]];
+    NSArray *services = [self.ble servicesDictionaryToArray:self.ble.bleServices];
     resolve(services);
 }
 
@@ -392,7 +413,7 @@ RCT_EXPORT_METHOD(readFromDevice:(NSString *)uuid
     
     NSMutableString *activeUUID = nil;
     
-    if ([uuid isKindOfClass:[NSNull class]]) {
+    if ([uuid isKindOfClass:[NSNull class]] | (uuid == nil)) {
         CBPeripheral *activePeripheral = [self.ble getActivePeripheral:uuid];
         
         if (activePeripheral) {
@@ -442,7 +463,7 @@ RCT_EXPORT_METHOD(readUntilDelimiter:(NSString *)delimiter
         if ([peripherals count] < 1) {
             [self onError:@"Did not find any BLE peripherals"];
         } else {
-            if (([uuid length] <= 0) | [uuid isEqualToString:@""] | [uuid isKindOfClass:[NSNull class]]) {
+            if (([uuid length] <= 0) | [uuid isEqualToString:@""] | [uuid isKindOfClass:[NSNull class]] | (uuid == nil)) {
                 // First device found
                 peripheral = [peripherals objectAtIndex:0];
             } else {
@@ -481,7 +502,7 @@ RCT_EXPORT_METHOD(readUntilDelimiter:(NSString *)delimiter
 {
     NSMutableString *activeUUID = nil;
 
-    if ([uuid isKindOfClass:[NSNull class]]) {
+    if ([uuid isKindOfClass:[NSNull class]] | (uuid == nil)) {
         CBPeripheral *activePeripheral = [self.ble getActivePeripheral:uuid];
         
         if (activePeripheral) {
