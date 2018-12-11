@@ -426,9 +426,10 @@ NSDictionary *posnetService;
 
 - (NSArray *)includeDefaultServices:(NSArray *)services
 {
-    NSMutableArray *includedDefaults = [NSMutableArray arrayWithArray:[services arrayByAddingObjectsFromArray:[self getDefaultServices]]];
-    NSArray *ordered = [[NSOrderedSet orderedSetWithArray:[includedDefaults valueForKey:@"service"]] array];
-    return ordered;
+    NSMutableSet *mergedSet = [NSMutableSet setWithArray:services];
+    [mergedSet unionSet:[NSSet setWithArray:[self getDefaultServices]]];
+    NSArray *merged = [mergedSet allObjects];
+    return merged;
 }
 
 - (BOOL)validateServices:(NSArray *)services

@@ -76,7 +76,8 @@ const {
   available,
   withDelimiter,
   listUnpaired,
-  cancelDiscovery
+  cancelDiscovery,
+  setServices
 } = BluetoothSerial;
 
 BluetoothSerial.disconnect = (id = null) => disconnect(id);
@@ -89,6 +90,8 @@ BluetoothSerial.clear = (id = null) => clear(id);
 BluetoothSerial.available = (id = null) => available(id);
 BluetoothSerial.withDelimiter = (delimiter, id = null) =>
   withDelimiter(delimiter, id);
+BluetoothSerial.setServices = (services, includeDefaultServices = true) =>
+  setServices(services, includeDefaultServices);
 BluetoothSerial.discoverUnpairedDevices = listUnpaired;
 BluetoothSerial.stopScanning = cancelDiscovery;
 
