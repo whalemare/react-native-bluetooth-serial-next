@@ -412,7 +412,7 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
     }
 
     @ReactMethod
-    public void disconnect(String id, Promise promise) {
+    public void disconnect(@Nullable String id, Promise promise) {
         if (id == null) {
             id = mBluetoothService.getFirstDeviceAddress();
         }
@@ -434,7 +434,7 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
     }
 
     @ReactMethod
-    public void isConnected(String id, Promise promise) {
+    public void isConnected(@Nullable String id, Promise promise) {
         if (id == null) {
             id = mBluetoothService.getFirstDeviceAddress();
         }
@@ -444,11 +444,10 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
         } else {
             promise.resolve(mBluetoothService.isConnected(id));
         }
-
     }
 
     @ReactMethod
-    public void writeToDevice(String message, String id, Promise promise) {
+    public void writeToDevice(String message, @Nullable String id, Promise promise) {
         if (id == null) {
             id = mBluetoothService.getFirstDeviceAddress();
         }
@@ -465,7 +464,7 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
     }
 
     @ReactMethod
-    public void readFromDevice(String id, Promise promise) {
+    public void readFromDevice(@Nullable String id, Promise promise) {
         if (id == null) {
             id = mBluetoothService.getFirstDeviceAddress();
         }
@@ -487,7 +486,7 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
     }
 
     @ReactMethod
-    public void readUntilDelimiter(String delimiter, String id, Promise promise) {
+    public void readUntilDelimiter(String delimiter, @Nullable String id, Promise promise) {
         if (id == null) {
             id = mBluetoothService.getFirstDeviceAddress();
         }
@@ -496,7 +495,7 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
     }
 
     @ReactMethod
-    public void withDelimiter(String delimiter, String id, Promise promise) {
+    public void withDelimiter(String delimiter, @Nullable String id, Promise promise) {
         if (id == null) {
             id = mBluetoothService.getFirstDeviceAddress();
         }
@@ -512,7 +511,7 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
     }
 
     @ReactMethod
-    public void clear(String id, Promise promise) {
+    public void clear(@Nullable String id, Promise promise) {
         if (id == null) {
             id = mBluetoothService.getFirstDeviceAddress();
         }
@@ -527,7 +526,7 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
     }
 
     @ReactMethod
-    public void available(String id, Promise promise) {
+    public void available(@Nullable String id, Promise promise) {
         if (id == null) {
             id = mBluetoothService.getFirstDeviceAddress();
         }
@@ -577,13 +576,7 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
      * @param connectedDevice Connected device
      */
     void onConnectionSuccess(String msg, BluetoothDevice connectedDevice) {
-        WritableMap params = Arguments.createMap();
         WritableMap device = deviceToWritableMap(connectedDevice);
-
-        params.putMap("device", device);
-        params.putString("message", msg);
-        sendEvent(CONN_SUCCESS, params);
-
         String id = connectedDevice.getAddress();
 
         if (!mDelimiters.containsKey(id)) {
@@ -598,9 +591,17 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
             Promise promise = mConnectedPromises.get(id);
 
             if (promise != null) {
-                promise.resolve(params);
+                WritableMap result = Arguments.createMap();
+                result.putMap("device", device);
+                result.putString("message", msg);
+                promise.resolve(result);
             }
         }
+
+        WritableMap params = Arguments.createMap();
+        params.putMap("device", device);
+        params.putString("message", msg);
+        sendEvent(CONN_SUCCESS, params);
     }
 
     /**
@@ -615,7 +616,6 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
 
         params.putMap("device", device);
         params.putString("message", msg);
-        sendEvent(CONN_FAILED, params);
 
         String id = connectedDevice.getAddress();
 
@@ -626,6 +626,8 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
                 promise.reject(new Exception(msg));
             }
         }
+
+        sendEvent(CONN_FAILED, params);
     }
 
     /**
@@ -640,9 +642,9 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
 
         params.putMap("device", device);
         params.putString("message", msg);
-        sendEvent(CONN_LOST, params);
-
         mConnectedPromises.remove(connectedDevice.getAddress());
+
+        sendEvent(CONN_LOST, params);
     }
 
     /**
@@ -678,11 +680,15 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
         String completeData = readUntil(id, delimiter);
 
         if (completeData != null && completeData.length() > 0) {
-            WritableMap params = Arguments.createMap();
-            params.putString("id", id);
-            params.putString("data", completeData);
-            sendEvent(DEVICE_READ, params);
-            sendEvent(DATA_READ, params);
+            WritableMap readParams = Arguments.createMap();
+            readParams.putString("id", id);
+            readParams.putString("data", completeData);
+            sendEvent(DEVICE_READ, readParams);
+
+            WritableMap dataParams = Arguments.createMap();
+            dataParams.putString("id", id);
+            dataParams.putString("data", completeData);
+            sendEvent(DATA_READ, dataParams);
         }
     }
 
