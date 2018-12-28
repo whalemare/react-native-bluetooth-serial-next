@@ -68,7 +68,7 @@ class App extends React.Component {
       this.setState({ isEnabled: false });
     });
 
-    this.events.on("connectionSuccess", device => {
+    this.events.on("connectionSuccess", ({ device }) => {
       if (device) {
         Toast.showShortBottom(
           `Device ${device.name}<${device.id}> has been connected`
@@ -76,7 +76,7 @@ class App extends React.Component {
       }
     });
 
-    this.events.on("connectionFailed", device => {
+    this.events.on("connectionFailed", ({ device }) => {
       if (device) {
         Toast.showShortBottom(
           `Failed to connect with device ${device.name}<${device.id}>`
@@ -84,7 +84,7 @@ class App extends React.Component {
       }
     });
 
-    this.events.on("connectionLost", device => {
+    this.events.on("connectionLost", ({ device }) => {
       if (device) {
         Toast.showShortBottom(
           `Device ${device.name}<${device.id}> connection has been lost`

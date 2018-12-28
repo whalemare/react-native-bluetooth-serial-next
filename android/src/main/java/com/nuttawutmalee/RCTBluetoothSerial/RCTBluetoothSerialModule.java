@@ -23,6 +23,7 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.Promise;
@@ -552,7 +553,7 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
     }
 
     @ReactMethod
-    public void setServices(WritableArray services, Boolean includeDefaultServices, Promise promise) {
+    public void setServices(ReadableArray services, Boolean includeDefaultServices, Promise promise) {
         WritableArray updated = Arguments.createArray();
         promise.resolve(updated);
     }
@@ -576,7 +577,6 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
      * @param connectedDevice Connected device
      */
     void onConnectionSuccess(String msg, BluetoothDevice connectedDevice) {
-        WritableMap device = deviceToWritableMap(connectedDevice);
         String id = connectedDevice.getAddress();
 
         if (!mDelimiters.containsKey(id)) {
@@ -591,13 +591,12 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
             Promise promise = mConnectedPromises.get(id);
 
             if (promise != null) {
-                WritableMap result = Arguments.createMap();
-                result.putMap("device", device);
-                result.putString("message", msg);
-                promise.resolve(result);
+                WritableMap deviceForPromise = deviceToWritableMap(connectedDevice);
+                promise.resolve(deviceForPromise);
             }
         }
 
+        WritableMap device = deviceToWritableMap(connectedDevice);
         WritableMap params = Arguments.createMap();
         params.putMap("device", device);
         params.putString("message", msg);
