@@ -46,10 +46,10 @@ RCT_EXPORT_MODULE();
     return dispatch_get_main_queue();
 }
 
-+ (BOOL)requiresMainQueueSetup
-{
-    return NO;
-}
+// + (BOOL)requiresMainQueueSetup
+// {
+//     return NO;
+// }
 
 /*----------------------------------------------------*/
 #pragma mark - React Native Methods Available in Javascript -
