@@ -33,7 +33,7 @@ RCT_EXPORT_MODULE();
         _connectionPromises = [NSMutableDictionary dictionary];
         _doesHaveListeners = FALSE;
         
-        _ble = [[BLE alloc] init];
+        _ble = [BLE sharedInstance];
         [_ble setDelegate:self];
     }
     return self;

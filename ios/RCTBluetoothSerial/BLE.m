@@ -78,6 +78,16 @@ NSDictionary *posnetService;
     return self;
 }
 
++ (BLE *)sharedInstance
+{
+    static BLE *_sharedInstance = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        _sharedInstance = [[BLE alloc] init];
+    });
+    return _sharedInstance;
+}
+
 /*----------------------------------------------------*/
 #pragma mark - Getter/Setter -
 /*----------------------------------------------------*/

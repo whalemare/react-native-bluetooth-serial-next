@@ -146,6 +146,8 @@ typedef void (^CentralManagerDiscoverPeripheralsCallback) (NSMutableArray *perip
  */
 @property (copy, nonatomic) CentralManagerDiscoverPeripheralsCallback scanBlock;
 
++ (BLE *)sharedInstance;
+
 /*!
  * KVO for centralReady and centralNotReadyReason
  */
