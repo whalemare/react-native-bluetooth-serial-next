@@ -516,14 +516,19 @@ RCT_EXPORT_METHOD(readUntilDelimiter:(NSString *)delimiter
     
     if ([[self.buffers allKeys] containsObject:activeUUID]) {
         NSMutableString *buffer = [self.buffers valueForKey:activeUUID];
-        NSRange range = [buffer rangeOfString:delimiter];
-        
-        if (range.location != NSNotFound) {
-            long end = range.location + range.length;
-            message = [buffer substringToIndex:end];
-            NSRange truncate = NSMakeRange(0, end);
-            [buffer deleteCharactersInRange:truncate];
-            [self.buffers setValue:buffer forKey:activeUUID];
+
+        if (([delimiter length] <= 0) | [delimiter isEqualToString:@""] | [delimiter isKindOfClass:[NSNull class]] | (delimiter == nil)) {
+            message = [NSString stringWithString:buffer];
+        } else {
+            NSRange range = [buffer rangeOfString:delimiter];
+            
+            if (range.location != NSNotFound) {
+                long end = range.location + range.length;
+                message = [buffer substringToIndex:end];
+                NSRange truncate = NSMakeRange(0, end);
+                [buffer deleteCharactersInRange:truncate];
+                [self.buffers setValue:buffer forKey:activeUUID];
+            }
         }
     }
 

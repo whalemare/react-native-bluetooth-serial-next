@@ -14,6 +14,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.Base64;
 
@@ -703,12 +704,17 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
 
         if (mBuffers.containsKey(id)) {
             StringBuffer buffer = mBuffers.get(id);
-            int index = buffer.indexOf(delimiter, 0);
 
-            if (index > -1) {
-                data = buffer.substring(0, index + delimiter.length());
-                buffer.delete(0, index + delimiter.length());
-                mBuffers.put(id, buffer);
+            if (TextUtils.isEmpty(delimiter)) {
+                data = buffer.toString();
+            } else {
+                int index = buffer.indexOf(delimiter, 0);
+
+                if (index > -1) {
+                    data = buffer.substring(0, index + delimiter.length());
+                    buffer.delete(0, index + delimiter.length());
+                    mBuffers.put(id, buffer);
+                }
             }
         }
 
