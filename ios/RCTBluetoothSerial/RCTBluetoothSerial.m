@@ -519,6 +519,10 @@ RCT_EXPORT_METHOD(readUntilDelimiter:(NSString *)delimiter
 
         if (([delimiter length] <= 0) | [delimiter isEqualToString:@""] | [delimiter isKindOfClass:[NSNull class]] | (delimiter == nil)) {
             message = [NSString stringWithString:buffer];
+            long end = [buffer length] - 1;
+            NSRange entireString = NSMakeRange(0, end);
+            [buffer deleteCharactersInRange:entireString];
+            [self.buffers setValue:buffer forKey:activeUUID];
         } else {
             NSRange range = [buffer rangeOfString:delimiter];
             
