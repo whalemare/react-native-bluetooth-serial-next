@@ -1,3 +1,5 @@
+## <span style="color: red;">This repository is considered as unstable for production.</span>
+
 # React Native Bluetooth Serial Next :)
 
 [![npm](https://img.shields.io/npm/v/react-native-bluetooth-serial-next.svg?style=popout-square)](https://www.npmjs.com/package/react-native-bluetooth-serial-next) [![NpmLicense](https://img.shields.io/npm/l/react-native-bluetooth-serial-next.svg?style=popout-square)](https://github.com/nuttawutmalee/react-native-bluetooth-serial-next) [![Dependency Status](https://img.shields.io/david/nuttawutmalee/react-native-bluetooth-serial-next.svg?style=popout-square)](https://david-dm.org/nuttawutmalee/react-native-bluetooth-serial-next) [![NPM Downloads](https://img.shields.io/npm/dt/react-native-bluetooth-serial-next.svg?style=popout-square)](https://www.npmjs.com/package/react-native-bluetooth-serial-next)
