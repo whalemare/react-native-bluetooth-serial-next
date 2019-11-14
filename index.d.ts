@@ -20,8 +20,8 @@ export type Buffer = (data: number[]) => void;
  * @param options
  */
 export function withSubscription(options: {
-  subscriptionName?: "subscription";
-  destroyOnWillUnmount?: true;
+  subscriptionName?: string = "subscription";
+  destroyOnWillUnmount?: boolean = true;
 }): (WrappedComponent: React.Component) => React.Component;
 
 declare namespace BluetoothSerial {
@@ -205,7 +205,7 @@ declare namespace BluetoothSerial {
       data: string,
       subscription: ReactNative.EmitterSubscription
     ) => {},
-    delimiter?: "",
+    delimiter?: string | null = "",
     id?: string
   ): void;
 
@@ -215,7 +215,7 @@ declare namespace BluetoothSerial {
    * @param delimiter
    * @param id
    */
-  export function readOnce(delimiter?: "", id?: string): Promise<string>;
+  export function readOnce(delimiter?: string | null = "", id?: string): Promise<string>;
 
   /**
    * Read data from connected device every n ms.
@@ -226,9 +226,9 @@ declare namespace BluetoothSerial {
    * @param id
    */
   export function readEvery(
-    callback: (data: string, intervalId: number) => {},
-    ms?: 1000,
-    delimiter?: "",
+    callback: (data: string, intervalId: number) => void,
+    ms?: number = 1000,
+    delimiter?: string | null = "",
     id?: string
   ): void;
 
@@ -316,7 +316,7 @@ declare namespace BluetoothSerial {
    */
   export function setServices(
     services: Array<Service>,
-    includeDefaultServices?: true
+    includeDefaultServices?: boolean = true
   ): Promise<Array<Service>>;
 
   /**
@@ -389,7 +389,7 @@ declare namespace BluetoothSerial {
         data: string,
         subscription: ReactNative.EmitterSubscription
       ) => {},
-      delimiter?: ""
+      delimiter?: string | null = ""
     ) => void;
 
     /**
@@ -397,7 +397,7 @@ declare namespace BluetoothSerial {
      *
      * @param delimiter
      */
-    readOnce: (delimiter?: "") => Promise<string>;
+    readOnce: (delimiter?: string = "") => Promise<string>;
 
     /**
      * Read data from the selected device every n ms.
@@ -407,9 +407,9 @@ declare namespace BluetoothSerial {
      * @param delimiter
      */
     readEvery: (
-      callback: (data: string, intervalId: number) => {},
-      ms?: 1000,
-      delimiter?: ""
+      callback: (data: string, intervalId: number) => void,
+      ms?: number = 1000,
+      delimiter?: string | null = ""
     ) => void;
 
     /**
