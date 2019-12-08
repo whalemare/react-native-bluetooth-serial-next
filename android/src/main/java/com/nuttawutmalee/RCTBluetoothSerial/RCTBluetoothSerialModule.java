@@ -478,13 +478,16 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
         if (mBuffers.containsKey(id)) {
             StringBuffer buffer = mBuffers.get(id);
             int length = buffer.length();
-            
+
             char[] data = new char[buffer.length()];
             buffer.getChars(0, buffer.length(), data, 0);
             WritableArray array = new WritableNativeArray();
             for (int i = 0; i < data.length; i++) {
                 array.pushInt(data[i]);
             }
+            buffer.delete(0, length);
+            mBuffers.put(id, buffer);
+            
             promise.resolve(array);
         } else {
             promise.resolve("");
