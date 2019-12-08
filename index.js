@@ -222,7 +222,7 @@ BluetoothSerial.device = (id = null) => ({
   /**
    * Read all buffer data from connected device.
    *
-   * @return {Promise<String>}
+   * @return {Promise<number>}
    */
   readFromDevice: () => BluetoothSerial.readFromDevice(id),
 

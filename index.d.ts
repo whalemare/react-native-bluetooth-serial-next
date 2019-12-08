@@ -237,7 +237,7 @@ declare namespace BluetoothSerial {
    *
    * @param id Device id or uuid
    */
-  export function readFromDevice(id?: string): Promise<string>;
+  export function readFromDevice(id?: string): Promise<[number]>;
 
   /**
    * Read all buffer data up to particular delimiter
