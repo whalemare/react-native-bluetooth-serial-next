@@ -1,6 +1,7 @@
 package com.nuttawutmalee.RCTBluetoothSerial;
 
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -27,6 +28,7 @@ import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.Promise;
+import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 import static com.nuttawutmalee.RCTBluetoothSerial.RCTBluetoothSerialPackage.TAG;
@@ -473,17 +475,20 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
         if (D)
             Log.d(TAG, "Read from device id " + id);
 
-        String data = "";
-
         if (mBuffers.containsKey(id)) {
             StringBuffer buffer = mBuffers.get(id);
             int length = buffer.length();
-            data = buffer.substring(0, length);
-            buffer.delete(0, length);
-            mBuffers.put(id, buffer);
+            
+            char[] data = new char[buffer.length()];
+            buffer.getChars(0, buffer.length(), data, 0);
+            WritableArray array = new WritableNativeArray();
+            for (int i = 0; i < data.length; i++) {
+                array.pushInt(data[i]);
+            }
+            promise.resolve(array);
+        } else {
+            promise.resolve("");
         }
-
-        promise.resolve(data);
     }
 
     @ReactMethod
