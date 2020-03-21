@@ -1,12 +1,5 @@
 package com.nuttawutmalee.RCTBluetoothSerial;
 
-import java.lang.reflect.Method;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import javax.annotation.Nullable;
-
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -15,21 +8,34 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
-import android.util.Log;
 import android.util.Base64;
+import android.util.Log;
 
 import com.facebook.react.bridge.ActivityEventListener;
+import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.LifecycleEventListener;
+import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
-import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReadableArray;
-import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableArray;
-import com.facebook.react.bridge.Promise;
+import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
+
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.Nullable;
+
+import me.aflak.bluetooth.Bluetooth;
+import me.aflak.bluetooth.interfaces.BluetoothCallback;
+import me.aflak.bluetooth.interfaces.DeviceCallback;
+import me.aflak.bluetooth.reader.LineReader;
 
 import static com.nuttawutmalee.RCTBluetoothSerial.RCTBluetoothSerialPackage.TAG;
 
@@ -72,6 +78,8 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
     private HashMap<String, StringBuffer> mBuffers;
     private HashMap<String, String> mDelimiters;
 
+    private Bluetooth bluetooth;
+
     public RCTBluetoothSerialModule(ReactApplicationContext reactContext) {
         super(reactContext);
 
@@ -109,6 +117,63 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
         mReactContext.addActivityEventListener(this);
         mReactContext.addLifecycleEventListener(this);
         registerBluetoothStateReceiver();
+
+        bluetooth = new Bluetooth(reactContext);
+        bluetooth.setBluetoothCallback(new BluetoothCallback() {
+            @Override
+            public void onBluetoothTurningOn() {
+                Log.d("Bluetooth", "onBluetoothTurningOn");
+            }
+
+            @Override
+            public void onBluetoothOn() {
+                Log.d("Bluetooth", "onBluetoothOn");
+            }
+
+            @Override
+            public void onBluetoothTurningOff() {
+                Log.d("Bluetooth", "onBluetoothTurningOff");
+            }
+
+            @Override
+            public void onBluetoothOff() {
+                Log.d("Bluetooth", "onBluetoothOff");
+            }
+
+            @Override
+            public void onUserDeniedActivation() {
+                Log.d("Bluetooth", "onUserDeniedActivation");
+            }
+        });
+        bluetooth.setReader(LineReader.class);
+        bluetooth.setDeviceCallback(new DeviceCallback() {
+            @Override
+            public void onDeviceConnected(BluetoothDevice device) {
+                onConnectionSuccess("", device);
+//                Log.d("Bluetooth", "onDeviceConnected");
+            }
+
+            @Override
+            public void onDeviceDisconnected(BluetoothDevice device, String message) {
+                Log.d("Bluetooth", "onDeviceDisconnected");
+            }
+
+            @Override
+            public void onMessage(byte[] message) {
+                Log.d("Bluetooth", "onMessage = " + Arrays.toString(message));
+            }
+
+            @Override
+            public void onError(int errorCode) {
+                Log.d("Bluetooth", "onError " + errorCode);
+            }
+
+            @Override
+            public void onConnectError(BluetoothDevice device, String message) {
+//                onConnectError(device, message);
+                Log.d("Bluetooth", "onConnectError");
+            }
+        });
     }
 
     @Override
@@ -396,22 +461,24 @@ public class RCTBluetoothSerialModule extends ReactContextBaseJavaModule
 
     @ReactMethod
     public void connect(String id, Promise promise) {
-        if (D)
-            Log.d(TAG, "connect");
+//        if (D)
+//            Log.d(TAG, "connect");
+//
+//        if (mBluetoothAdapter != null) {
+//            BluetoothDevice rawDevice = mBluetoothAdapter.getRemoteDevice(id);
+//
+//            if (rawDevice != null) {
+//                mBluetoothService.connect(rawDevice);
+//            } else {
+//                mConnectedPromises.put(FIRST_DEVICE, promise);
+//                registerFirstAvailableBluetoothDeviceDiscoveryReceiver();
+//            }
+//        } else {
+//            rejectNullBluetoothAdapter(promise);
+//        }
 
-        if (mBluetoothAdapter != null) {
-            BluetoothDevice rawDevice = mBluetoothAdapter.getRemoteDevice(id);
-
-            if (rawDevice != null) {
-                mConnectedPromises.put(id, promise);
-                mBluetoothService.connect(rawDevice);
-            } else {
-                mConnectedPromises.put(FIRST_DEVICE, promise);
-                registerFirstAvailableBluetoothDeviceDiscoveryReceiver();
-            }
-        } else {
-            rejectNullBluetoothAdapter(promise);
-        }
+        bluetooth.connectToAddress(id);
+        mConnectedPromises.put(id, promise);
     }
 
     @ReactMethod
