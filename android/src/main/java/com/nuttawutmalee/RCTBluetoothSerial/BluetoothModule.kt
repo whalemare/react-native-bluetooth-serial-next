@@ -5,6 +5,7 @@ import android.content.Intent
 import android.util.Base64
 import android.util.Log
 import com.facebook.react.bridge.*
+import com.nuttawutmalee.RCTBluetoothSerial.events.AppEvent
 import me.aflak.bluetooth.Bluetooth
 import me.aflak.bluetooth.interfaces.BluetoothCallback
 import me.aflak.bluetooth.interfaces.DeviceCallback
@@ -25,7 +26,7 @@ class BluetoothModule(context: ReactApplicationContext) : ReactContextBaseJavaMo
     private val connectedDevices = HashMap<Address, BluetoothDevice>()
     private val connectionCallbacks = HashMap<Address, Promise>()
 
-    private val readers = HashMap<Address, Promise>()
+    private val readers = HashMap<Address, Callback>()
 
     init {
         bluetooth.setBluetoothCallback(object : BluetoothCallback {
@@ -66,21 +67,19 @@ class BluetoothModule(context: ReactApplicationContext) : ReactContextBaseJavaMo
 
             override fun onMessage(message: ByteArray) {
                 Log.d("Bluetooth", "onMessage bytes = ${message}; content = ${String(message)}")
-                readers.forEach { (address, promise) ->
-                    val array: WritableArray = WritableNativeArray()
-                    for (i in message.indices) {
-                        array.pushInt(message[i].toInt())
-                    }
-                    Log.d("Bluetooth", "onMessage resolve = ${array}")
-                    promise.resolve(array)
+                val array: WritableArray = WritableNativeArray()
+                for (i in message.indices) {
+                    array.pushInt(message[i].toInt())
                 }
+                Log.d("Bluetooth", "onMessage resolve = $array")
+                context.sendEvent(AppEvent.read(array))
             }
 
             override fun onError(errorCode: Int) {
                 Log.d("Bluetooth", "onError $errorCode")
             }
 
-            override fun onConnectError(device: BluetoothDevice, message: String) { //                onConnectError(device, message);
+            override fun onConnectError(device: BluetoothDevice, message: String) {
                 Log.d("Bluetooth", "onConnectError")
                 connectionCallbacks[device.address]?.let {
                     it.reject(message, UnknownError(message))
@@ -89,7 +88,6 @@ class BluetoothModule(context: ReactApplicationContext) : ReactContextBaseJavaMo
             }
         })
         bluetooth.onStart()
-//        bluetooth.setCallbackOnUI(reactApplicationContext.currentActivity)
     }
 
     @ReactMethod
@@ -189,9 +187,14 @@ class BluetoothModule(context: ReactApplicationContext) : ReactContextBaseJavaMo
     }
 
     @ReactMethod
-    fun readFromDevice(id: String?, promise: Promise) {
+    fun readFromDevice(id: String?, callback: Callback) {
+        callback(null)
+    }
+
+    @ReactMethod
+    fun listenDevice(id: String?, callback: Callback) {
         Log.d("Bluetooth", "readFromDevice ${id}")
-        readers[id!!] = promise
+        readers[id!!] = callback
     }
 
     @ReactMethod
@@ -212,7 +215,6 @@ class BluetoothModule(context: ReactApplicationContext) : ReactContextBaseJavaMo
     @ReactMethod
     fun available(id: String?, promise: Promise) {
         promise.reject("Not implemented", NotImplementedError())
-
     }
 
     @ReactMethod
