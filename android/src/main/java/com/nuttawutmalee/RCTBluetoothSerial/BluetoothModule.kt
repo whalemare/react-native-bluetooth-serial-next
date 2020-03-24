@@ -63,6 +63,7 @@ class BluetoothModule(context: ReactApplicationContext) : ReactContextBaseJavaMo
             override fun onDeviceDisconnected(device: BluetoothDevice, message: String) {
                 Log.d("Bluetooth", "onDeviceDisconnected")
                 connectedDevices.remove(device.address)
+                context.sendEvent(AppEvent.connectionLost(device.address))
             }
 
             override fun onMessage(message: ByteArray) {
@@ -77,12 +78,14 @@ class BluetoothModule(context: ReactApplicationContext) : ReactContextBaseJavaMo
 
             override fun onError(errorCode: Int) {
                 Log.d("Bluetooth", "onError $errorCode")
+                context.sendEvent(AppEvent.error(errorCode))
             }
 
             override fun onConnectError(device: BluetoothDevice, message: String) {
                 Log.d("Bluetooth", "onConnectError")
                 connectionCallbacks[device.address]?.let {
                     it.reject(message, UnknownError(message))
+                    connectedDevices.remove(device.address)
                     connectionCallbacks.remove(device.address)
                 }
             }
@@ -146,21 +149,14 @@ class BluetoothModule(context: ReactApplicationContext) : ReactContextBaseJavaMo
 
     @ReactMethod
     fun disconnect(id: String?, promise: Promise) {
-//        var id = id
-//        if (id == null) {
-//            id = mBluetoothService.getFirstDeviceAddress()
-//        }
-//        if (RCTBluetoothSerialModule.D) Log.d(RCTBluetoothSerialPackage.TAG, "Disconnect from device id $id")
-//        if (id != null) {
-//            mBluetoothService.stop(id)
-//        }
-//        promise.resolve(true)
+        bluetooth.disconnect()
+        promise.resolve(true)
     }
 
     @ReactMethod
     fun disconnectAll(promise: Promise) {
-//        mBluetoothService.stopAll()
-//        promise.resolve(true)
+        bluetooth.disconnect()
+        promise.resolve(true)
     }
 
     @ReactMethod
